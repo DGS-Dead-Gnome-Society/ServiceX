@@ -6,10 +6,10 @@ At current, I have multiple models on how ServicesX should be coded.
 
 ## Features
 The features listed below are prioritised based on difficulity and importance.
-[ ] SASL authentication (Ability to authentication via SASL upon connect)
-[ ] Virtual IRC operator (Ability to authenticate as an oper)
-[ ] Command interpreter (Commands sent to ServiceX in channels and via PM)
-[ ] Channel Statistics
+* [ ] SASL authentication (Ability to authentication via SASL upon connect)
+* [ ] Virtual IRC operator (Ability to authenticate as an oper)
+* [ ] Command interpreter (Commands sent to ServiceX in channels and via PM)
+* [ ] Channel Statistics
 * Polling System (Democracy)
 * Ensured compatibility with `UnrealIRCd specifics`
 * Verification of users based on the NickServ account username shown in their WHOIS
