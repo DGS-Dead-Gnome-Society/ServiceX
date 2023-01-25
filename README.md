@@ -12,3 +12,4 @@ At current, I have multiple models on how ServicesX should be coded.
 * Polling System (Democracy)
 * Ensured compatibility with UnrealIRCd specifics
 * Verification of users based on NickServ account shown in their WHOIS
+* Automatically join a namespace of channels
