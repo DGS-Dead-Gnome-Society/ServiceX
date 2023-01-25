@@ -6,3 +6,9 @@ We had a Limnoria bot called X which was hosting channel statistics and a pollin
 
 ## How will ServiceX work?
 At current, I have multiple models on how ServicesX should be coded.
+
+## Features
+* Channel Statistics
+* Polling System (Democracy)
+* Ensured compatibility with UnrealIRCd specifics
+* Verification of users based on NickServ account
