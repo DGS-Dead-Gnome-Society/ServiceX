@@ -11,4 +11,4 @@ At current, I have multiple models on how ServicesX should be coded.
 * Channel Statistics
 * Polling System (Democracy)
 * Ensured compatibility with UnrealIRCd specifics
-* Verification of users based on NickServ account
+* Verification of users based on NickServ account shown in their /WHOIS
