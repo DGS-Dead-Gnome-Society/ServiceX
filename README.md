@@ -1,4 +1,6 @@
 # ServiceX
+***IMPORTANT:*** This project is no longer actively maintained in favour of ServiceX which will have the ability to use MemoServ to send messages to one or more users. If you're expecting more maturity from this script then please consider switching over to ServiceX.
+
 A pseudo-services bot wrote in Python 3 for the DGS IRC network. We had a Limnoria bot called X which was hosting channel statistics and a polling system however there were a few hardcoded things I didn't like about Limnoria so I decided to re-invent the wheel.
 
 **Please note:** IRC daemons tend to break the RFC standards for IRC to an extent meaning they don't entirely abide by them, they have their own protocol level differences. ServiceX is developed for the DGS (Dead Gnome Society) network and DGS servers run UnrealIRCd which breaks those standards, that means that ServiceX ***may*** crash if used on a non-UnrealIRCd IRC network depending on the IRCd they use. We are not responsible for any crashes you ***may*** endure due to running ServiceX on a non-UnrealIRCd IRC network.
