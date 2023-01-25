@@ -13,7 +13,7 @@ DGS has been killing gnomes since 1806, so if you got any gnome pest then DGS is
 When features are proposed, they'll be added to this list. When features are implemented, they'll be checked out.
 * [ ] Configurability (Either TOML or JSON)
 * [ ] Ensured compatibility with `UnrealIRCd specifics`
-* [ ] SASL authentication (Ability to authentication via SASL upon connect)
+* [ ] SASL authentication (Ability to authenticate via SASL upon connect)
 * [ ] Virtual IRC operator (Ability to authenticate as an oper)
 * [ ] Automatically join all channels in the `#DGS-* namespace` (Configurable)
 * [ ] Command interpreter (Commands sent to ServiceX in channels and via PM)
