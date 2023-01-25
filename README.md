@@ -19,6 +19,7 @@ When features are proposed, they'll be added to this list. When features are imp
 * [ ] Command interpreter (Commands sent to ServiceX in channels and via PM)
 * [ ] Module engine
 * [ ] Verification of users based on the NickServ account username shown in their WHOIS
+* [ ] Ability to use MemoServ to send messages to one or more users
 * [ ] Polling System (Democracy)
 * [ ] Channel Statistics
 
