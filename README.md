@@ -5,13 +5,13 @@ A pseudo-services bot wrote in Python 3 for the DGS IRC network. We had a Limnor
 At current, I have multiple models on how ServicesX should be coded.
 
 ## Features
-The features listed below are prioritised based on difficulity and importance.
+* [ ] Configurability (Either TOML or JSON)
+* [ ] Ensured compatibility with `UnrealIRCd specifics`
 * [ ] SASL authentication (Ability to authentication via SASL upon connect)
 * [ ] Virtual IRC operator (Ability to authenticate as an oper)
+* [ ] Automatically join all channels in the `#DGS-* namespace` (Configurable)
 * [ ] Command interpreter (Commands sent to ServiceX in channels and via PM)
+* [ ] Module engine
+* [ ] Verification of users based on the NickServ account username shown in their WHOIS
+* [ ] Polling System (Democracy)
 * [ ] Channel Statistics
-* Polling System (Democracy)
-* Ensured compatibility with `UnrealIRCd specifics`
-* Verification of users based on the NickServ account username shown in their WHOIS
-* Automatically join all channels in the `#DGS-* namespace` (Configurable)
-* Module engine
