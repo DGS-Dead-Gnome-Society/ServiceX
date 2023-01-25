@@ -10,6 +10,6 @@ At current, I have multiple models on how ServicesX should be coded.
 ## Features
 * Channel Statistics
 * Polling System (Democracy)
-* Ensured compatibility with UnrealIRCd specifics
+* Ensured compatibility with `UnrealIRCd specifics`
 * Verification of users based on NickServ account shown in their WHOIS
 * Automatically join all channels in the `#DGS-* namespace` (Configurable)
