@@ -4,7 +4,8 @@ A pseudo-services bot wrote in Python 3 for the DGS IRC network. We had a Limnor
 ## How will ServiceX work?
 At current, I have multiple models on how ServicesX should be coded.
 
-## Features
+## Feature Checklist
+When features are proposed, they'll be added to this list. When features are implemented, they'll be checked out.
 * [ ] Configurability (Either TOML or JSON)
 * [ ] Ensured compatibility with `UnrealIRCd specifics`
 * [ ] SASL authentication (Ability to authentication via SASL upon connect)
