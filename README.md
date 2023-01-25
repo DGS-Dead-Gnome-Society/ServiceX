@@ -23,5 +23,5 @@ When features are proposed, they'll be added to this list. When features are imp
 * [ ] Channel Statistics
 
 ## Features that will not be supported and why
-First of all, why add extra features if they really aren't necessary for our needs? Lets try to abide by the KISS (Keep It Simple Stupid) principle.
+First of all, why add extra features if they really aren't necessary for our needs? Lets try to keep to the KISS (Keep It Simple Stupid) approach.
 * ***SSL and IPv6 support:*** ServiceX has been designed to provide services tailored to the culture and needs of the DGS IRC network and connect via 127.0.0.1
