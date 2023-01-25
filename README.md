@@ -18,3 +18,7 @@ When features are proposed, they'll be added to this list. When features are imp
 * [ ] Verification of users based on the NickServ account username shown in their WHOIS
 * [ ] Polling System (Democracy)
 * [ ] Channel Statistics
+
+## Features that will not be supported and why
+First of all, why add extra features if they really aren't necessary for our needs? Lets try to abide by the KISS (Keep It Simple Stupid) principle.
+* SSL and IPv6 support: ServiceX is intended provide services tailored to culture and needs of the DGS IRC network and connect via 127.0.0.1
