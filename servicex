@@ -86,6 +86,7 @@ class ServiceXProtocol(irc.IRCClient):
                 str = "Command '%s' sent by '%s!%s@%s' via PM was not found." % (fromCommand, fromNickname, fromIdent, fromHostname)
                 print(str)
                 self.logger.log(str)
+                self.msg(fromNickname, "Command not found")
                 return
 
             str = "Command '%s' sent by '%s!%s@%s' via PM was found." % (fromCommand, fromNickname, fromIdent, fromHostname)
@@ -102,6 +103,7 @@ class ServiceXProtocol(irc.IRCClient):
                 str = "Command '%s' sent by '%s!%s@%s' via channel '%s' was not found." % (fromCommand, fromNickname, fromIdent, fromHostname, fromTarget)
                 print(str)
                 self.logger.log(str)
+                self.msg(fromTarget, "Command not found")
                 return
 
             str = "Command '%s' sent by '%s!%s@%s' via channel '%s' was found." % (fromCommand, fromNickname, fromIdent, fromHostname, fromTarget)
