@@ -6,6 +6,7 @@ from twisted.python import log
 from datetime import datetime
 from sys import stdout
 
+
 def timestamp(dt=None):
     now = datetime.now()
 
@@ -17,6 +18,7 @@ def timestamp(dt=None):
 
     if dt == "time":
         return now.strftime("%H:%M:%S")
+
 
 class MessageLogger:
     def __init__(self, file):
@@ -34,9 +36,9 @@ class ServiceXProtocol(irc.IRCClient):
     nickname = "X"
     username = "X"
     realname = "ServiceX pseudo-services"
-    versionEnv = "test"
+    versionEnv = ""
     versionName = "ServiceX"
-    versionNum = "1.0"
+    versionNum = ""
 
     def command_ping(self, target, message):
         self.msg(target, "pong!")
@@ -61,13 +63,19 @@ class ServiceXProtocol(irc.IRCClient):
         str = "Attempting to identify with NickServ as user '%s'." % self.username
         print(str)
         self.logger.log(str)
-        self.msg('NickServ', 'IDENTIFY foo bar')
+        self.msg(
+            'NickServ',
+            'IDENTIFY %s OR3E^BVz#"vry2JzVzR0V59$,ANX-(7s' %
+            self.username)
         channels = ['#DGS-Bots', '##DGS-Bots']
         for channel in channels:
+            str = "Attempting to join channel '%s'." % channel
+            print(str)
+            self.logger.log(str)
             self.join(channel)
 
     def joined(self, channel):
-        str = "I have joined channel '%s'." % channel
+        str = "Successfully joined channel '%s'." % channel
         print(str)
         self.logger.log(str)
 
@@ -83,13 +91,15 @@ class ServiceXProtocol(irc.IRCClient):
             try:
                 function = getattr(self, 'command_%s' % fromCommand)
             except AttributeError:
-                str = "Command '%s' sent by '%s!%s@%s' via PM was not found." % (fromCommand, fromNickname, fromIdent, fromHostname)
+                str = "Command '%s' sent by '%s!%s@%s' via PM was not found." % (
+                    fromCommand, fromNickname, fromIdent, fromHostname)
                 print(str)
                 self.logger.log(str)
                 self.msg(fromNickname, "Command not found")
                 return
 
-            str = "Command '%s' sent by '%s!%s@%s' via PM was found." % (fromCommand, fromNickname, fromIdent, fromHostname)
+            str = "Command '%s' sent by '%s!%s@%s' via PM was found." % (
+                fromCommand, fromNickname, fromIdent, fromHostname)
             print(str)
             self.logger.log(str)
             function(fromNickname, fromMessage)
@@ -100,13 +110,15 @@ class ServiceXProtocol(irc.IRCClient):
             try:
                 function = getattr(self, 'command_%s' % fromCommand)
             except AttributeError:
-                str = "Command '%s' sent by '%s!%s@%s' via channel '%s' was not found." % (fromCommand, fromNickname, fromIdent, fromHostname, fromTarget)
+                str = "Command '%s' sent by '%s!%s@%s' via channel '%s' was not found." % (
+                    fromCommand, fromNickname, fromIdent, fromHostname, fromTarget)
                 print(str)
                 self.logger.log(str)
                 self.msg(fromTarget, "Command not found")
                 return
 
-            str = "Command '%s' sent by '%s!%s@%s' via channel '%s' was found." % (fromCommand, fromNickname, fromIdent, fromHostname, fromTarget)
+            str = "Command '%s' sent by '%s!%s@%s' via channel '%s' was found." % (
+                fromCommand, fromNickname, fromIdent, fromHostname, fromTarget)
             print(str)
             self.logger.log(str)
             function(fromTarget, fromMessage)
@@ -119,15 +131,21 @@ class ServiceXProtocol(irc.IRCClient):
         self.logger.log("* %s %s" % (user, msg))
 
     def noticed(self, user, channel, msg):
-        if msg == "Password accepted - you are now recognized." and user == "NickServ!services@services.":
-            str = "Successfully identified with NickServ."
-            print(str)
-            self.logger.log(str)
+        if user == "NickServ!services@services.":
+            if msg == "Password accepted - you are now recognized.":
+                str = "Successfully identified with NickServ."
+                print(str)
+                self.logger.log(str)
+
+            if "isn't registered." in msg:
+                str = "Failed to identify with NickServ."
+                print(str)
+                self.logger.log(str)
 
     def irc_NICK(self, prefix, params):
-        old_nick = prefix.split('!')[0]
-        new_nick = params[0]
-        self.logger.log("'%s' is now known as '%s'" % (old_nick, new_nick))
+        oldNick = prefix.split('!')[0]
+        newNick = params[0]
+        self.logger.log("'%s' is now known as '%s'" % (oldNick, newNick))
 
     def alterCollidedNick(self, nickname):
         return nickname + '_'
@@ -138,9 +156,9 @@ class ServiceXFactory(protocol.ClientFactory):
         self.filename = filename
 
     def buildProtocol(self, addr):
-        p = ServiceXProtocol()
-        p.factory = self
-        return p
+        proto = ServiceXProtocol()
+        proto.factory = self
+        return proto
 
     def clientConnectionLost(self, connector, reason):
         connector.connect()
