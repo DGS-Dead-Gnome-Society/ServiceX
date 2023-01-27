@@ -28,3 +28,19 @@ First of all, why add extra features if they really aren't necessary for our nee
 * ***SSL and IPv6 support:*** ServiceX has been designed to provide services tailored to the culture and needs of the DGS IRC network and connect via 127.0.0.1
 * ***Multithreading:*** We are a small IRC network so ServiceX won't be receiving much traffic, there are no features proposed at present that require multiple tasks to run concurrently
 * ***Multi-network support:*** This should be obvious
+
+## Demonstration console output
+```$ ./servicex 
+2023-01-27 02:05:51+0000 [-] Log opened.
+2023-01-27 02:05:51+0000 [-] Starting factory <__main__.ServiceXFactory object at 0x7fb3d2742520>
+2023-01-27 02:05:53+0000 [-] Attempting to identify with NickServ as user 'X'.
+2023-01-27 02:05:53+0000 [-] I have joined channel '#DGS-Bots'.
+2023-01-27 02:05:53+0000 [-] I have joined channel '##DGS-Bots'.
+2023-01-27 02:05:53+0000 [-] Successfully identified with NickServ.
+2023-01-27 02:06:09+0000 [-] Command 'ping' sent by 'Helenah!s98259@PoulsKitchen.Club' via channel '#DGS-Bots' was found.
+2023-01-27 02:06:13+0000 [-] Command 'test' sent by 'Helenah!s98259@PoulsKitchen.Club' via channel '#DGS-Bots' was not found.
+2023-01-27 02:06:15+0000 [-] Command 'time' sent by 'Helenah!s98259@PoulsKitchen.Club' via channel '#DGS-Bots' was found.
+2023-01-27 02:06:20+0000 [-] Command 'ping' sent by 'Helenah!s98259@PoulsKitchen.Club' via PM was found.
+2023-01-27 02:06:23+0000 [-] Command 'test' sent by 'Helenah!s98259@PoulsKitchen.Club' via PM was not found.
+2023-01-27 02:06:28+0000 [-] Command '!test' sent by 'Helenah!s98259@PoulsKitchen.Club' via PM was not found.
+2023-01-27 02:06:30+0000 [-] Command 'time' sent by 'Helenah!s98259@PoulsKitchen.Club' via PM was found.```
