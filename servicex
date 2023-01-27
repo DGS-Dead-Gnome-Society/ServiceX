@@ -53,13 +53,15 @@ class ServiceXProtocol(irc.IRCClient):
         self.logger.close()
 
     def signedOn(self):
+        self.msg('NickServ', 'IDENTIFY X d,h*<PcE[H?uDgX^=:=Px>)byR~]wE]s')
         channels = ['#DGS-Bots', '##DGS-Bots']
         for channel in channels:
             self.join(channel)
 
     def joined(self, channel):
-        print("I have joined channel '%s'." % channel)
-        self.logger.log("I have joined channel '%s'." % channel)
+        str = "I have joined channel '%s'." % channel
+        print(str)
+        self.logger.log(str)
 
     def privmsg(self, fromString, fromTarget, fromMessage):
         fromNickname, fromString = fromString.split('!')
@@ -73,12 +75,14 @@ class ServiceXProtocol(irc.IRCClient):
             try:
                 function = getattr(self, 'command_%s' % fromCommand)
             except AttributeError:
-                print("Command '%s' sent by '%s!%s@%s' via PM was not found." % (fromCommand, fromNickname, fromIdent, fromHostname))
-                self.logger.log("Command '%s' sent by '%s!%s@%s' via PM was not found." % (fromCommand, fromNickname, fromIdent, fromHostname))
+                str = "Command '%s' sent by '%s!%s@%s' via PM was not found." % (fromCommand, fromNickname, fromIdent, fromHostname)
+                print(str)
+                self.logger.log(str)
                 return
 
-            print("Command '%s' sent by '%s!%s@%s' via PM was found." % (fromCommand, fromNickname, fromIdent, fromHostname))
-            self.logger.log("Command '%s' sent by '%s!%s@%s' via PM was found." % (fromCommand, fromNickname, fromIdent, fromHostname))
+            str = "Command '%s' sent by '%s!%s@%s' via PM was found." % (fromCommand, fromNickname, fromIdent, fromHostname)
+            print(str)
+            self.logger.log(str)
             function(fromNickname, fromMessage)
 
         if fromCommand.startswith("!"):
@@ -87,12 +91,14 @@ class ServiceXProtocol(irc.IRCClient):
             try:
                 function = getattr(self, 'command_%s' % fromCommand)
             except AttributeError:
-                print("Command '%s' sent by '%s!%s@%s' via channel '%s' was not found." % (fromCommand, fromNickname, fromIdent, fromHostname, fromTarget))
-                self.logger.log("Command '%s' sent by '%s!%s@%s' via channel '%s' was not found." % (fromCommand, fromNickname, fromIdent, fromHostname, fromTarget))
+                str = "Command '%s' sent by '%s!%s@%s' via channel '%s' was not found." % (fromCommand, fromNickname, fromIdent, fromHostname, fromTarget)
+                print(str)
+                self.logger.log(str)
                 return
 
-            print("Command '%s' sent by '%s!%s@%s' via channel '%s' was found." % (fromCommand, fromNickname, fromIdent, fromHostname, fromTarget))
-            self.logger.log("Command '%s' sent by '%s!%s@%s' via channel '%s' was found." % (fromCommand, fromNickname, fromIdent, fromHostname, fromTarget))
+            str = "Command '%s' sent by '%s!%s@%s' via channel '%s' was found." % (fromCommand, fromNickname, fromIdent, fromHostname, fromTarget)
+            print(str)
+            self.logger.log(str)
             function(fromTarget, fromMessage)
 
         if function is None:
