@@ -32,6 +32,11 @@ class MessageLogger:
 
 class ServiceXProtocol(irc.IRCClient):
     nickname = "X"
+    username = "X"
+    realname = "ServiceX pseudo-services"
+    versionEnv = "test"
+    versionName = "ServiceX"
+    versionNum = "1.0"
 
     def command_ping(self, target, message):
         self.msg(target, "pong!")
@@ -53,7 +58,10 @@ class ServiceXProtocol(irc.IRCClient):
         self.logger.close()
 
     def signedOn(self):
-        self.msg('NickServ', 'IDENTIFY X d,h*<PcE[H?uDgX^=:=Px>)byR~]wE]s')
+        str = "Attempting to identify with NickServ as user '%s'." % self.username
+        print(str)
+        self.logger.log(str)
+        self.msg('NickServ', 'IDENTIFY foo bar')
         channels = ['#DGS-Bots', '##DGS-Bots']
         for channel in channels:
             self.join(channel)
@@ -107,6 +115,12 @@ class ServiceXProtocol(irc.IRCClient):
     def action(self, user, channel, msg):
         user = user.split('!', 1)[0]
         self.logger.log("* %s %s" % (user, msg))
+
+    def noticed(self, user, channel, msg):
+        if msg == "Password accepted - you are now recognized." and user == "NickServ!services@services.":
+            str = "Successfully identified with NickServ."
+            print(str)
+            self.logger.log(str)
 
     def irc_NICK(self, prefix, params):
         old_nick = prefix.split('!')[0]
