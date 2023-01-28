@@ -3,16 +3,12 @@ A pseudo-services bot wrote using the python3-twisted library for the DGS IRC ne
 
 **Please note:** IRC daemons tend to break the RFC standards for IRC to an extent meaning they don't entirely abide by them, they have their own protocol level differences. ServiceX is developed for the DGS (Dead Gnome Society) network and DGS servers run UnrealIRCd which breaks those standards, that means that ServiceX ***may*** crash if used on a non-UnrealIRCd IRC network depending on the IRCd they use. We are not responsible for any crashes you ***may*** endure due to running ServiceX on a non-UnrealIRCd IRC network.
 
-## How will ServiceX work?
-At current, I have multiple models on how ServicesX should be coded.
-
 ## What is DGS (Dead Gnome Sociaty)?
 DGS has been killing gnomes since 1806, so if you got any gnome pest then DGS is who you wanna call. Actually that was a joke but here's the truth, DGS (Dead Gnome Society) started in 2005 as a WoW (World of Warcraft) guild that started to kill gnomes (a WoW race). The guild is strong as ever today and has also evolved into an IRC Network with a lot of amazing people to help you, and chat with. If you want to see what we are about then feel free to connect to our IRC network at irc.poulskitchen.club on port 6667 or port 6697 (For SSL) and don't forgot to read the MOTD.
 
 ## Feature Checklist
 When features are proposed, they'll be added to this list. When features are implemented, they'll be checked out.
-* [ ] Configurability (Either TOML or JSON)
-* [x] Ensured compatibility with `UnrealIRCd specifics` (python3-twisted can handle this and more)
+* [X] Database support for configuration files and other data (sqlite3)
 * [ ] SASL authentication (Ability to authenticate via SASL upon connect)
 * [ ] Virtual IRC operator (Ability to authenticate as an oper)
 * [ ] Automatically join all channels in the `#DGS-* namespace` (Configurable)
