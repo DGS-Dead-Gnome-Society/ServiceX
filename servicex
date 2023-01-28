@@ -22,7 +22,10 @@ def timestamp(dt=None):
 
 def log(type, entry):
     if type in ('info', 'warning', 'error'):
-        print("%s:%s: %s" % (timestamp(), type, entry))
+        str = "%s:%s: %s" % (timestamp(), type, entry)
+        with open("logs/%s.log" % timestamp("date"), "a") as logFile:
+            logFile.write("%s\n" % str)
+            print(str)
 
 
 def databaseConnect(databaseFile):
@@ -48,18 +51,15 @@ class ServiceXProtocol(irc.IRCClient):
         self.realname = realname
         self.channels = []
 
-    def command_join(self, target, channelName, nickname):
+    def command_joinchan(self, target, channelName, nickname):
         self.joinChannel(channelName)
 
-    def command_part(self, target, channelName, nickname):
+    def command_partchan(self, target, channelName, nickname):
         self.partChannel(channelName)
 
-    def command_cycle(self, target, channelName, nickname):
-        self.partChannel(channelName)
-        self.joinChannel(channelName)
-
-    def command_ping(self, target, message, nickname):
-        self.reply(target, "pong!", nickname)
+    def command_cyclechan(self, target, channelName, nickname):
+        self.partChannel(channelName, False)
+        self.joinChannel(channelName, False)
 
     def command_date(self, target, message, nickname):
         self.reply(target, timestamp("date"), nickname)
@@ -100,7 +100,7 @@ class ServiceXProtocol(irc.IRCClient):
     def parted(self, channelName):
         log("info", "Successfully parted channel '%s'." % channelName)
 
-    def joinChannel(self, channelName):
+    def joinChannel(self, channelName, queryDatabase=True):
         channelName = channelName.split()[0]
 
         if channelName in self.channels:
@@ -110,18 +110,19 @@ class ServiceXProtocol(irc.IRCClient):
             self.join(channelName)
             self.channels.append(channelName)
 
-            databaseCursor.execute('SELECT * FROM ircChannels WHERE channelName=? AND networkID=?', (channelName, self.factory.networkID))
-            channel = databaseCursor.fetchone()
+            if queryDatabase is True:
+                databaseCursor.execute('SELECT * FROM ircChannels WHERE channelName=? AND networkID=?', (channelName, self.factory.networkID))
+                channel = databaseCursor.fetchone()
 
-            if channel is None:
-                log("info", "Attempting to add channel '%s' to the database." % channelName)
-                query = """INSERT INTO ircChannels (networkID, channelName) VALUES (?, ?)"""
-                databaseCursor.execute(query, (self.factory.networkID, channelName))
-                databaseConnection.commit()
-            else:
-                log("info", "Channel '%s' already exists in the database." % channelName)
+                if channel is None:
+                    log("info", "Attempting to add channel '%s' to the database." % channelName)
+                    query = """INSERT INTO ircChannels (networkID, channelName) VALUES (?, ?)"""
+                    databaseCursor.execute(query, (self.factory.networkID, channelName))
+                    databaseConnection.commit()
+                else:
+                    log("info", "Channel '%s' already exists in the database." % channelName)
 
-    def partChannel(self, channelName):
+    def partChannel(self, channelName, queryDatabase=True):
         channelName = channelName.split()[0]
 
         if channelName in self.channels:
@@ -129,14 +130,15 @@ class ServiceXProtocol(irc.IRCClient):
             self.part(channelName)
             self.channels.remove(channelName)
 
-            databaseCursor.execute('SELECT * FROM ircChannels WHERE channelName=? AND networkID=?', (channelName, self.factory.networkID))
-            channel = databaseCursor.fetchone()
+            if queryDatabase is True:
+                databaseCursor.execute('SELECT * FROM ircChannels WHERE channelName=? AND networkID=?', (channelName, self.factory.networkID))
+                channel = databaseCursor.fetchone()
 
-            if channel is not None:
-                log("info", "Attempting to remove channel '%s' from the database." % channelName)
-                query = """DELETE FROM ircChannels WHERE channelName=? AND networkID=?"""
-                databaseCursor.execute(query, (channelName, self.factory.networkID))
-                databaseConnection.commit()
+                if channel is not None:
+                    log("info", "Attempting to remove channel '%s' from the database." % channelName)
+                    query = """DELETE FROM ircChannels WHERE channelName=? AND networkID=?"""
+                    databaseCursor.execute(query, (channelName, self.factory.networkID))
+                    databaseConnection.commit()
         else:
             log("info", "Not in channel '%s'." % channelName)
 
