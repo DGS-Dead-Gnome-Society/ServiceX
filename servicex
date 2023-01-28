@@ -20,8 +20,9 @@ def timestamp(dt=None):
         return now.strftime("%H:%M:%S")
 
 
-def log(entry):
-    print("%s: %s" % (timestamp(), entry))
+def log(type, entry):
+    if type in ('info', 'warning', 'error'):
+        print("%s:%s: %s" % (timestamp(), type, entry))
 
 
 def databaseConnect(databaseFile):
@@ -30,7 +31,7 @@ def databaseConnect(databaseFile):
         conn = connect(databaseFile)
         return conn
     except Error as e:
-        log(e)
+        log('error', e)
 
     return conn
 
@@ -45,9 +46,13 @@ class ServiceXProtocol(irc.IRCClient):
         self.nickname = nickname
         self.username = ident
         self.realname = realname
+        self.channels = []
 
     def command_join(self, target, channelName):
         self.joinChannel(channelName)
+
+    def command_part(self, target, channelName):
+        self.partChannel(channelName)
 
     def command_ping(self, target, message):
         self.msg(target, "pong!")
@@ -60,18 +65,18 @@ class ServiceXProtocol(irc.IRCClient):
 
     def connectionMade(self):
         irc.IRCClient.connectionMade(self)
-        log("Successfully made connection with %s (%s:%s)." % (
+        log("info", "Successfully made connection with %s (%s:%s)." % (
             self.factory.networkName, self.factory.networkAddress, self.factory.networkPort))
 
     def connectionLost(self, reason):
         irc.IRCClient.connectionLost(self, reason)
-        log("Connection with %s (%s:%s) has been lost." % (
+        log("warning", "Connection with %s (%s:%s) has been lost." % (
             self.factory.networkName, self.factory.networkAddress, self.factory.networkPort))
         if reactor.running:
             reactor.stop()
 
     def signedOn(self):
-        log("Attempting to identify with NickServ as user '%s'." %
+        log("info", "Attempting to identify with NickServ as user '%s'." %
             self.factory.nickservUsername)
 
         self.msg(
@@ -85,21 +90,52 @@ class ServiceXProtocol(irc.IRCClient):
         for channel in channels:
             self.joinChannel(channel[0])
 
-    def joined(self, channel):
-        log("Successfully joined channel '%s'." % channel)
+    def joined(self, channelName):
+        log("info", "Successfully joined channel '%s'." % channelName)
+
+    def parted(self, channelName):
+        log("info", "Successfully parted channel '%s'." % channelName)
 
     def joinChannel(self, channelName):
-        log("Attempting to join channel '%s'." % channelName)
-        self.join(channelName)
-        databaseCursor.execute('SELECT * FROM ircChannels WHERE channelName=? AND networkID=?', (channelName, self.factory.networkID))
-        channel = databaseCursor.fetchone()
+        channelName = channelName.split()[0]
 
-        if channel is None:
-            log("Attempting to add channel '%s' to the database." % channelName)
-            tuple = (self.factory.networkID, channelName)
-            query = """INSERT INTO ircChannels (networkID, channelName) VALUES (?, ?)"""
-            databaseCursor.execute(query, (self.factory.networkID, channelName))
-            databaseConnection.commit()
+        if channelName in self.channels:
+            log("info", "Already in channel '%s'." % channelName)
+        else:
+            log("info", "Attempting to join channel '%s'." % channelName)
+            self.join(channelName)
+            self.channels.append(channelName)
+
+            databaseCursor.execute('SELECT * FROM ircChannels WHERE channelName=? AND networkID=?', (channelName, self.factory.networkID))
+            channel = databaseCursor.fetchone()
+
+            if channel is None:
+                log("info", "Attempting to add channel '%s' to the database." % channelName)
+                query = """INSERT INTO ircChannels (networkID, channelName) VALUES (?, ?)"""
+                databaseCursor.execute(query, (self.factory.networkID, channelName))
+                databaseConnection.commit()
+            else:
+                log("info", "Channel '%s' already exists in the database." % channelName)
+
+    def partChannel(self, channelName):
+        channelName = channelName.split()[0]
+
+        if channelName in self.channels:
+            log("info", "Attempting to part channel '%s'." % channelName)
+            self.part(channelName)
+            self.channels.remove(channelName)
+
+            databaseCursor.execute('SELECT * FROM ircChannels WHERE channelName=? AND networkID=?', (channelName, self.factory.networkID))
+            channel = databaseCursor.fetchone()
+
+            if channel is not None:
+                log("info", "Attempting to remove channel '%s' from the database." % channelName)
+                query = """DELETE FROM ircChannels WHERE channelName=? AND networkID=?"""
+                databaseCursor.execute(query, (channelName, self.factory.networkID))
+                databaseConnection.commit()
+        else:
+            log("info", "Not in channel '%s'." % channelName)
+
 
     def privmsg(self, fromString, fromTarget, fromMessage):
         fromNickname, fromString = fromString.split('!')
@@ -113,12 +149,12 @@ class ServiceXProtocol(irc.IRCClient):
             try:
                 function = getattr(self, 'command_%s' % fromCommand)
             except AttributeError:
-                log("Command '%s' sent by '%s!%s@%s' via PM was not found." %
+                log("info", "Command '%s' sent by '%s!%s@%s' via PM was not found." %
                     (fromCommand, fromNickname, fromIdent, fromHostname))
                 self.msg(fromNickname, "Command not found")
                 return
 
-            log("Command '%s' sent by '%s!%s@%s' via PM was found." %
+            log("info", "Command '%s' sent by '%s!%s@%s' via PM was found." %
                 (fromCommand, fromNickname, fromIdent, fromHostname))
             function(fromNickname, fromMessage)
 
@@ -128,12 +164,12 @@ class ServiceXProtocol(irc.IRCClient):
             try:
                 function = getattr(self, 'command_%s' % fromCommand)
             except AttributeError:
-                log("Command '%s' sent by '%s!%s@%s' via channel '%s' was not found." %
+                log("info", "Command '%s' sent by '%s!%s@%s' via channel '%s' was not found." %
                     (fromCommand, fromNickname, fromIdent, fromHostname, fromTarget))
                 self.msg(fromTarget, "Command not found")
                 return
 
-            log("Command '%s' sent by '%s!%s@%s' via channel '%s' was found." %
+            log("info", "Command '%s' sent by '%s!%s@%s' via channel '%s' was found." %
                 (fromCommand, fromNickname, fromIdent, fromHostname, fromTarget))
             function(fromTarget, fromMessage)
 
@@ -147,10 +183,10 @@ class ServiceXProtocol(irc.IRCClient):
     def noticed(self, user, channel, msg):
         if user == "NickServ!services@services.":
             if msg == "Password accepted - you are now recognized.":
-                log("Successfully identified with NickServ.")
+                log("info", "Successfully identified with NickServ.")
 
             if "isn't registered." in msg:
-                log("Failed to identify with NickServ.")
+                log("info", "Failed to identify with NickServ.")
 
     def irc_NICK(self, prefix, params):
         oldNick = prefix.split('!')[0]
@@ -199,10 +235,11 @@ class ServiceXFactory(protocol.ClientFactory):
 
 
 if __name__ == '__main__':
+    log("info", "ServiceX starting up...")
     if isfile('servicex.db'):
-        log("Attempting to load database file 'servicex.db'.")
+        log("info", "Attempting to load database file 'servicex.db'.")
     else:
-        log("Database file does not exist. Are you sure you ran 'servicex-setup' first?")
+        log("error", "Database file does not exist. Are you sure you ran 'servicex-setup' first?")
         exit()
 
     databaseConnection = databaseConnect("servicex.db")
