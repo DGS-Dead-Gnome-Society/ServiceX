@@ -1,0 +1,93 @@
+#!/usr/bin/env python3
+
+from sqlite3 import connect, Error
+from os.path import isfile
+
+
+def databaseConnect(databaseFile):
+    conn = None
+    try:
+        conn = connect(databaseFile)
+        return conn
+    except Error as e:
+        print(e)
+
+    return conn
+
+
+def tableCreate(databaseConnection, databaseTable):
+    try:
+        c = databaseConnection.cursor()
+        c.execute(databaseTable)
+    except Error as e:
+        print(e)
+
+
+def main():
+    if isfile('servicex.db'):
+        exit("The database file appears to already exist, you may run 'servicex'.")
+    else:
+        databaseConnection = databaseConnect("servicex.db")
+        databaseCursor = databaseConnection.cursor()
+
+    networksTable = """CREATE TABLE IF NOT EXISTS ircNetworks (
+                                    ID integer PRIMARY KEY,
+                                    networkName text NOT NULL,
+                                    networkAddress text NOT NULL,
+                                    networkPort integer NOT NULL,
+                                    nickname text NOT NULL,
+                                    ident text NOT NULL,
+                                    realname text NOT NULL,
+                                    nickservUsername text NOT NULL,
+                                    nickservPassword text NOT NULL,
+                                    operUsername text NOT NULL,
+                                    operPassword text NOT NULL
+                                );"""
+
+    channelsTable = """CREATE TABLE IF NOT EXISTS ircChannels (
+                                    ID integer PRIMARY KEY,
+                                    networkID integer NOT NULL,
+                                    channelName text NOT NULL
+                                );"""
+
+    if databaseConnection is not None:
+        tableCreate(databaseConnection, networksTable)
+        tableCreate(databaseConnection, channelsTable)
+        nickname = input("What would you like my nickname to be? ")
+        ident = input("What would you like my ident to be? ")
+        realname = input("What would you like my real name to be? ")
+        networkName = input(
+            "What is the name of the IRC network you would like me to connect to? ")
+        networkAddress = input(
+            "What is the address of the IRC network you would like me to connect to? ")
+        networkPort = input(
+            "What is the port of the IRC network you would like me to connect to? ")
+        nickservUsername = input("What is my NickServ username? ")
+        nickservPassword = input("What is my NickServ password? ")
+        operUsername = input("What is my oper username? ")
+        operPassword = input("What is my oper password? ")
+        channelName = input("Which IRC channel should I join? ")
+        tuple = (
+            networkName,
+            networkAddress,
+            networkPort,
+            nickname,
+            ident,
+            realname,
+            nickservUsername,
+            nickservPassword,
+            operUsername,
+            operPassword)
+        query = """INSERT INTO ircNetworks (networkName, networkAddress, networkPort, nickname, ident, realname, nickservUsername, nickservPassword, operUsername, operPassword) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"""
+        databaseCursor.execute(query, tuple)
+        databaseConnection.commit()
+        tuple = (1, channelName)
+        query = """INSERT INTO ircChannels (networkID, channelName) VALUES (?, ?)"""
+        databaseCursor.execute(query, tuple)
+        databaseConnection.commit()
+    else:
+        print("Cannot create the database connection.")
+
+
+if __name__ == "__main__":
+    main()
