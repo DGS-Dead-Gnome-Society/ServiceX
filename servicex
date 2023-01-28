@@ -5,6 +5,8 @@ from twisted.internet import reactor, protocol
 from twisted.python import log
 from datetime import datetime
 from sys import stdout
+from sqlite3 import connect, Error
+from os.path import isfile
 
 
 def timestamp(dt=None):
@@ -20,6 +22,17 @@ def timestamp(dt=None):
         return now.strftime("%H:%M:%S")
 
 
+def databaseConnect(databaseFile):
+    conn = None
+    try:
+        conn = connect(databaseFile)
+        return conn
+    except Error as e:
+        print(e)
+
+    return conn
+
+
 class MessageLogger:
     def __init__(self, file):
         self.file = file
@@ -33,9 +46,9 @@ class MessageLogger:
 
 
 class ServiceXProtocol(irc.IRCClient):
-    nickname = "X"
-    username = "X"
-    realname = "ServiceX pseudo-services"
+    nickname = nickname
+    username = ident
+    realname = realname
     versionEnv = ""
     versionName = "ServiceX"
     versionNum = ""
@@ -60,19 +73,26 @@ class ServiceXProtocol(irc.IRCClient):
         self.logger.close()
 
     def signedOn(self):
-        str = "Attempting to identify with NickServ as user '%s'." % self.username
+        str = "Attempting to identify with NickServ as user '%s'." % self.factory.nickservUsername
         print(str)
         self.logger.log(str)
+
         self.msg(
             'NickServ',
-            'IDENTIFY %s OR3E^BVz#"vry2JzVzR0V59$,ANX-(7s' %
-            self.username)
-        channels = ['#DGS-Bots', '##DGS-Bots']
+            'IDENTIFY %s %s' %
+            (self.factory.nickservUsername, self.factory.nickservPassword))
+
+        databaseCursor.execute(
+            'SELECT * FROM ircChannels WHERE networkID=?', (self.factory.networkID, ))
+
+        channels = databaseCursor.fetchall()
+
         for channel in channels:
-            str = "Attempting to join channel '%s'." % channel
+            channelID, networkID, channelName = channel
+            str = "Attempting to join channel '%s'." % channelName
             print(str)
             self.logger.log(str)
-            self.join(channel)
+            self.join(channelName)
 
     def joined(self, channel):
         str = "Successfully joined channel '%s'." % channel
@@ -152,8 +172,32 @@ class ServiceXProtocol(irc.IRCClient):
 
 
 class ServiceXFactory(protocol.ClientFactory):
-    def __init__(self, filename):
+    def __init__(
+            self,
+            filename,
+            networkID,
+            networkName,
+            networkAddress,
+            networkPort,
+            nickname,
+            ident,
+            realname,
+            nickservUsername,
+            nickservPassword,
+            operUsername,
+            operPassword):
         self.filename = filename
+        self.networkID = networkID
+        self.networkName = networkName
+        self.networkAddress = networkAddress
+        self.networkPort = networkPort
+        self.nickname = nickname
+        self.ident = ident
+        self.realname = realname
+        self.nickservUsername = nickservUsername
+        self.nickservPassword = nickservPassword
+        self.operUsername = operUsername
+        self.operPassword = operPassword
 
     def buildProtocol(self, addr):
         proto = ServiceXProtocol()
@@ -170,6 +214,37 @@ class ServiceXFactory(protocol.ClientFactory):
 
 if __name__ == '__main__':
     log.startLogging(stdout)
-    factory = ServiceXFactory("servicex.log")
-    reactor.connectTCP("irc.poulskitchen.club", 6667, factory)
+    if isfile('servicex.db'):
+        print("Attempting to load database file 'servicex.db'.")
+    else:
+        exit("Database file does not exist. Are you sure you ran 'servicex-setup' first?")
+
+    databaseConnection = databaseConnect("servicex.db")
+    databaseCursor = databaseConnection.cursor()
+
+    databaseCursor.execute('SELECT * FROM ircNetworks')
+    networks = databaseCursor.fetchall()
+
+    for network in networks:
+        networkID, networkName, networkAddress, networkPort, nickname, ident, realname, nickservUsername, nickservPassword, operUsername, operPassword = network
+
+        factory = ServiceXFactory(
+            "servicex.log",
+            networkID,
+            networkName,
+            networkAddress,
+            networkPort,
+            nickname,
+            ident,
+            realname,
+            nickservUsername,
+            nickservPassword,
+            operUsername,
+            operPassword)
+
+        reactor.connectTCP(
+            networkAddress,
+            networkPort,
+            factory)
+
     reactor.run()
