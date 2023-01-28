@@ -48,24 +48,24 @@ class ServiceXProtocol(irc.IRCClient):
         self.realname = realname
         self.channels = []
 
-    def command_join(self, target, channelName):
+    def command_join(self, target, channelName, nickname):
         self.joinChannel(channelName)
 
-    def command_part(self, target, channelName):
+    def command_part(self, target, channelName, nickname):
         self.partChannel(channelName)
 
-    def command_cycle(self, target, channelName):
+    def command_cycle(self, target, channelName, nickname):
         self.partChannel(channelName)
         self.joinChannel(channelName)
 
-    def command_ping(self, target, message):
-        self.msg(target, "pong!")
+    def command_ping(self, target, message, nickname):
+        self.reply(target, "pong!", nickname)
 
-    def command_date(self, target, message):
-        self.msg(target, timestamp("date"))
+    def command_date(self, target, message, nickname):
+        self.reply(target, timestamp("date"), nickname)
 
-    def command_time(self, target, message):
-        self.msg(target, timestamp("time"))
+    def command_time(self, target, message, nickname):
+        self.reply(target, timestamp("time"), nickname)
 
     def connectionMade(self):
         irc.IRCClient.connectionMade(self)
@@ -141,6 +141,12 @@ class ServiceXProtocol(irc.IRCClient):
             log("info", "Not in channel '%s'." % channelName)
 
 
+    def reply(self, replyTarget, replyMessage, replyNickname=None):
+        if replyNickname is None:
+            self.msg(replyTarget, "%s: %s" % (replyTarget, replyMessage))
+        else:
+            self.msg(replyTarget, "%s: %s" % (replyNickname, replyMessage))
+
     def privmsg(self, fromString, fromTarget, fromMessage):
         fromNickname, fromString = fromString.split('!')
         fromIdent, fromHostname = fromString.split('@')
@@ -155,12 +161,12 @@ class ServiceXProtocol(irc.IRCClient):
             except AttributeError:
                 log("info", "Command '%s' sent by '%s!%s@%s' via PM was not found." %
                     (fromCommand, fromNickname, fromIdent, fromHostname))
-                self.msg(fromNickname, "Command not found")
+                self.reply(fromNickname, "Command not found.", fromNickname)
                 return
 
             log("info", "Command '%s' sent by '%s!%s@%s' via PM was found." %
                 (fromCommand, fromNickname, fromIdent, fromHostname))
-            function(fromNickname, fromMessage)
+            function(fromNickname, fromMessage, fromNickname)
 
         if fromCommand.startswith(self.factory.commandTrigger):
             fromCommand = fromCommand.lstrip(self.factory.commandTrigger)
@@ -170,12 +176,12 @@ class ServiceXProtocol(irc.IRCClient):
             except AttributeError:
                 log("info", "Command '%s' sent by '%s!%s@%s' via channel '%s' was not found." %
                     (fromCommand, fromNickname, fromIdent, fromHostname, fromTarget))
-                self.msg(fromTarget, "Command not found")
+                self.reply(fromTarget, "Command not found.", fromNickname)
                 return
 
             log("info", "Command '%s' sent by '%s!%s@%s' via channel '%s' was found." %
                 (fromCommand, fromNickname, fromIdent, fromHostname, fromTarget))
-            function(fromTarget, fromMessage)
+            function(fromTarget, fromMessage, fromNickname)
 
         if function is None:
             return
