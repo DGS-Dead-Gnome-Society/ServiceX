@@ -212,10 +212,6 @@ class ServiceXFactory(protocol.ClientFactory):
     def clientConnectionLost(self, connector, reason):
         connector.connect()
 
-#    def clientConnectionFailed(self, connector, reason):
-#        print("connection failed:", reason)
-#        reactor.stop()
-
 
 if __name__ == '__main__':
     log.startLogging(stdout)
