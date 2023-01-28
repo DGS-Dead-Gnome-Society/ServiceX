@@ -140,7 +140,6 @@ class ServiceXProtocol(irc.IRCClient):
         else:
             log("info", "Not in channel '%s'." % channelName)
 
-
     def reply(self, replyTarget, replyMessage, replyNickname=None):
         if replyNickname is None:
             self.msg(replyTarget, "%s: %s" % (replyTarget, replyMessage))
@@ -186,10 +185,6 @@ class ServiceXProtocol(irc.IRCClient):
         if function is None:
             return
 
-    def action(self, user, channel, msg):
-        user = user.split('!', 1)[0]
-        log("* %s %s" % (user, msg))
-
     def noticed(self, user, channel, msg):
         if user == "NickServ!services@services.":
             if msg == "Password accepted - you are now recognized.":
@@ -197,11 +192,6 @@ class ServiceXProtocol(irc.IRCClient):
 
             if "isn't registered." in msg:
                 log("info", "Failed to identify with NickServ.")
-
-    def irc_NICK(self, prefix, params):
-        oldNick = prefix.split('!')[0]
-        newNick = params[0]
-        self.logger.log("'%s' is now known as '%s'" % (oldNick, newNick))
 
     def alterCollidedNick(self, nickname):
         return nickname + '_'
