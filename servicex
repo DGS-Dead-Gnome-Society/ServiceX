@@ -68,12 +68,15 @@ class ServiceXProtocol(irc.IRCClient):
     def connectionMade(self):
         irc.IRCClient.connectionMade(self)
         self.logger = MessageLogger(open(self.factory.filename, "a"))
-        self.logger.log("connected at %s" % timestamp())
+        str = "Successfully made connection with %s (%s:%s)." % (self.factory.networkName, self.factory.networkAddress, self.factory.networkPort)
+        print(str)
+        self.logger.log(str)
 
     def connectionLost(self, reason):
         irc.IRCClient.connectionLost(self, reason)
-        self.logger.log("disconnected at %s" % timestamp())
-        self.logger.close()
+        str = "Connection with %s (%s:%s) has been lost." % (self.factory.networkName, self.factory.networkAddress, self.factory.networkPort)
+        print(str)
+        self.logger.log(str)
         if reactor.running:
             reactor.stop()
 
