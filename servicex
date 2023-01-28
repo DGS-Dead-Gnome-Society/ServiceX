@@ -46,12 +46,15 @@ class MessageLogger:
 
 
 class ServiceXProtocol(irc.IRCClient):
-    nickname = nickname
-    username = ident
-    realname = realname
     versionEnv = ""
     versionName = "ServiceX"
     versionNum = ""
+
+    def __init__(self):
+        super().__init__()
+        self.nickname = nickname
+        self.username = ident
+        self.realname = realname
 
     def command_ping(self, target, message):
         self.msg(target, "pong!")
