@@ -2,12 +2,9 @@
 
 from twisted.words.protocols import irc
 from twisted.internet import reactor, protocol
-from twisted.python import log
 from datetime import datetime
-from sys import stdout
 from sqlite3 import connect, Error
 from os.path import isfile
-
 
 def timestamp(dt=None):
     now = datetime.now()
@@ -22,27 +19,18 @@ def timestamp(dt=None):
         return now.strftime("%H:%M:%S")
 
 
+def log(entry):
+    print("%s: %s" % (timestamp(), entry))
+
 def databaseConnect(databaseFile):
     conn = None
     try:
         conn = connect(databaseFile)
         return conn
     except Error as e:
-        print(e)
+        log(e)
 
     return conn
-
-
-class MessageLogger:
-    def __init__(self, file):
-        self.file = file
-
-    def log(self, message):
-        self.file.write('%s %s\n' % (timestamp(), message))
-        self.file.flush()
-
-    def close(self):
-        self.file.close()
 
 
 class ServiceXProtocol(irc.IRCClient):
@@ -67,23 +55,16 @@ class ServiceXProtocol(irc.IRCClient):
 
     def connectionMade(self):
         irc.IRCClient.connectionMade(self)
-        self.logger = MessageLogger(open(self.factory.filename, "a"))
-        str = "Successfully made connection with %s (%s:%s)." % (self.factory.networkName, self.factory.networkAddress, self.factory.networkPort)
-        print(str)
-        self.logger.log(str)
+        log("Successfully made connection with %s (%s:%s)." % (self.factory.networkName, self.factory.networkAddress, self.factory.networkPort))
 
     def connectionLost(self, reason):
         irc.IRCClient.connectionLost(self, reason)
-        str = "Connection with %s (%s:%s) has been lost." % (self.factory.networkName, self.factory.networkAddress, self.factory.networkPort)
-        print(str)
-        self.logger.log(str)
+        log("Connection with %s (%s:%s) has been lost." % (self.factory.networkName, self.factory.networkAddress, self.factory.networkPort))
         if reactor.running:
             reactor.stop()
 
     def signedOn(self):
-        str = "Attempting to identify with NickServ as user '%s'." % self.factory.nickservUsername
-        print(str)
-        self.logger.log(str)
+        log("Attempting to identify with NickServ as user '%s'." % self.factory.nickservUsername)
 
         self.msg(
             'NickServ',
@@ -97,15 +78,11 @@ class ServiceXProtocol(irc.IRCClient):
 
         for channel in channels:
             channelID, networkID, channelName = channel
-            str = "Attempting to join channel '%s'." % channelName
-            print(str)
-            self.logger.log(str)
+            log("Attempting to join channel '%s'." % channelName)
             self.join(channelName)
 
     def joined(self, channel):
-        str = "Successfully joined channel '%s'." % channel
-        print(str)
-        self.logger.log(str)
+        log("Successfully joined channel '%s'." % channel)
 
     def privmsg(self, fromString, fromTarget, fromMessage):
         fromNickname, fromString = fromString.split('!')
@@ -119,36 +96,24 @@ class ServiceXProtocol(irc.IRCClient):
             try:
                 function = getattr(self, 'command_%s' % fromCommand)
             except AttributeError:
-                str = "Command '%s' sent by '%s!%s@%s' via PM was not found." % (
-                    fromCommand, fromNickname, fromIdent, fromHostname)
-                print(str)
-                self.logger.log(str)
+                log("Command '%s' sent by '%s!%s@%s' via PM was not found." % (fromCommand, fromNickname, fromIdent, fromHostname))
                 self.msg(fromNickname, "Command not found")
                 return
 
-            str = "Command '%s' sent by '%s!%s@%s' via PM was found." % (
-                fromCommand, fromNickname, fromIdent, fromHostname)
-            print(str)
-            self.logger.log(str)
+            log("Command '%s' sent by '%s!%s@%s' via PM was found." % (fromCommand, fromNickname, fromIdent, fromHostname))
             function(fromNickname, fromMessage)
 
-        if fromCommand.startswith("!"):
-            fromCommand = fromCommand.lstrip('!')
+        if fromCommand.startswith(self.factory.commandTrigger):
+            fromCommand = fromCommand.lstrip(self.factory.commandTrigger)
 
             try:
                 function = getattr(self, 'command_%s' % fromCommand)
             except AttributeError:
-                str = "Command '%s' sent by '%s!%s@%s' via channel '%s' was not found." % (
-                    fromCommand, fromNickname, fromIdent, fromHostname, fromTarget)
-                print(str)
-                self.logger.log(str)
+                log("Command '%s' sent by '%s!%s@%s' via channel '%s' was not found." % (fromCommand, fromNickname, fromIdent, fromHostname, fromTarget))
                 self.msg(fromTarget, "Command not found")
                 return
 
-            str = "Command '%s' sent by '%s!%s@%s' via channel '%s' was found." % (
-                fromCommand, fromNickname, fromIdent, fromHostname, fromTarget)
-            print(str)
-            self.logger.log(str)
+            log("Command '%s' sent by '%s!%s@%s' via channel '%s' was found." % (fromCommand, fromNickname, fromIdent, fromHostname, fromTarget))
             function(fromTarget, fromMessage)
 
         if function is None:
@@ -156,19 +121,15 @@ class ServiceXProtocol(irc.IRCClient):
 
     def action(self, user, channel, msg):
         user = user.split('!', 1)[0]
-        self.logger.log("* %s %s" % (user, msg))
+        log("* %s %s" % (user, msg))
 
     def noticed(self, user, channel, msg):
         if user == "NickServ!services@services.":
             if msg == "Password accepted - you are now recognized.":
-                str = "Successfully identified with NickServ."
-                print(str)
-                self.logger.log(str)
+                log("Successfully identified with NickServ.")
 
             if "isn't registered." in msg:
-                str = "Failed to identify with NickServ."
-                print(str)
-                self.logger.log(str)
+                log("Failed to identify with NickServ.")
 
     def irc_NICK(self, prefix, params):
         oldNick = prefix.split('!')[0]
@@ -193,7 +154,8 @@ class ServiceXFactory(protocol.ClientFactory):
             nickservUsername,
             nickservPassword,
             operUsername,
-            operPassword):
+            operPassword,
+            commandTrigger):
         self.filename = filename
         self.networkID = networkID
         self.networkName = networkName
@@ -206,6 +168,7 @@ class ServiceXFactory(protocol.ClientFactory):
         self.nickservPassword = nickservPassword
         self.operUsername = operUsername
         self.operPassword = operPassword
+        self.commandTrigger = commandTrigger
 
     def buildProtocol(self, addr):
         proto = ServiceXProtocol()
@@ -217,11 +180,11 @@ class ServiceXFactory(protocol.ClientFactory):
 
 
 if __name__ == '__main__':
-    log.startLogging(stdout)
     if isfile('servicex.db'):
-        print("Attempting to load database file 'servicex.db'.")
+        log("Attempting to load database file 'servicex.db'.")
     else:
-        exit("Database file does not exist. Are you sure you ran 'servicex-setup' first?")
+        log("Database file does not exist. Are you sure you ran 'servicex-setup' first?")
+        exit()
 
     databaseConnection = databaseConnect("servicex.db")
     databaseCursor = databaseConnection.cursor()
@@ -230,7 +193,7 @@ if __name__ == '__main__':
     networks = databaseCursor.fetchall()
 
     for network in networks:
-        networkID, networkName, networkAddress, networkPort, nickname, ident, realname, nickservUsername, nickservPassword, operUsername, operPassword = network
+        networkID, networkName, networkAddress, networkPort, nickname, ident, realname, nickservUsername, nickservPassword, operUsername, operPassword, commandTrigger = network
 
         factory = ServiceXFactory(
             "servicex.log",
@@ -244,7 +207,8 @@ if __name__ == '__main__':
             nickservUsername,
             nickservPassword,
             operUsername,
-            operPassword)
+            operPassword,
+            commandTrigger)
 
         reactor.connectTCP(
             networkAddress,

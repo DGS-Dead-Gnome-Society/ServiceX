@@ -41,7 +41,8 @@ def main():
                                     nickservUsername text NOT NULL,
                                     nickservPassword text NOT NULL,
                                     operUsername text NOT NULL,
-                                    operPassword text NOT NULL
+                                    operPassword text NOT NULL,
+                                    commandTrigger text NOT NULL
                                 );"""
 
     channelsTable = """CREATE TABLE IF NOT EXISTS ircChannels (
@@ -53,6 +54,7 @@ def main():
     if databaseConnection is not None:
         tableCreate(databaseConnection, networksTable)
         tableCreate(databaseConnection, channelsTable)
+
         nickname = input("What would you like my nickname to be? ")
         ident = input("What would you like my ident to be? ")
         realname = input("What would you like my real name to be? ")
@@ -67,6 +69,8 @@ def main():
         operUsername = input("What is my oper username? ")
         operPassword = input("What is my oper password? ")
         channelName = input("Which IRC channel should I join? ")
+        commandTrigger = input("Which is my command trigger? ")
+
         tuple = (
             networkName,
             networkAddress,
@@ -77,8 +81,11 @@ def main():
             nickservUsername,
             nickservPassword,
             operUsername,
-            operPassword)
-        query = """INSERT INTO ircNetworks (networkName, networkAddress, networkPort, nickname, ident, realname, nickservUsername, nickservPassword, operUsername, operPassword) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"""
+            operPassword,
+            commandTrigger)
+
+        query = """INSERT INTO ircNetworks (networkName, networkAddress, networkPort, nickname, ident, realname, nickservUsername, nickservPassword, operUsername, operPassword, commandTrigger) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"""
+
         databaseCursor.execute(query, tuple)
         databaseConnection.commit()
         tuple = (1, channelName)
