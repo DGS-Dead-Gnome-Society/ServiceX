@@ -16,6 +16,7 @@ When features are proposed, they'll be added to this list. When features are imp
 * [X] Database support for configuration files and other data (sqlite3)
 * [x] Command interpreter (Commands sent to ServiceX in channels and via PM and seems to fully work)
 * [X] Join, part, cycle channels using the join, part and cycle commands (Made persistant in database)
+* [X] Date and time commands
 * [ ] SASL authentication (Ability to authenticate via SASL upon connect)
 * [ ] Virtual IRC operator (Ability to authenticate as an oper)
 * [ ] Automatically join all channels in the `#DGS-* namespace` (Configurable)
