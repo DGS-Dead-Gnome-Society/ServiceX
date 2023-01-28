@@ -11,8 +11,7 @@ DGS has been killing gnomes since 1806, so if you got any gnome pest then DGS is
 
 ## Feature Checklist
 When features are proposed, they'll be added to this list. When features are implemented, they'll be checked out.
-* [ ] Configurability (Either TOML or JSON)
-* [x] Ensured compatibility with `UnrealIRCd specifics` (python3-twisted can handle this and more)
+* [X] Database support for configuration files and other data (sqlite3)
 * [ ] SASL authentication (Ability to authenticate via SASL upon connect)
 * [ ] Virtual IRC operator (Ability to authenticate as an oper)
 * [ ] Automatically join all channels in the `#DGS-* namespace` (Configurable)
