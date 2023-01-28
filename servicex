@@ -140,7 +140,7 @@ class ServiceXProtocol(irc.IRCClient):
         else:
             log("info", "Not in channel '%s'." % channelName)
 
-    def reply(self, replyTarget, replyMessage, replyNickname=None):
+    def reply(self, replyTarget, replyMessage, replyNickname):
         if replyNickname is None:
             self.msg(replyTarget, "%s: %s" % (replyTarget, replyMessage))
         else:
@@ -150,7 +150,12 @@ class ServiceXProtocol(irc.IRCClient):
         fromNickname, fromString = fromString.split('!')
         fromIdent, fromHostname = fromString.split('@')
         fromMessage = fromMessage.strip()
-        fromCommand = fromMessage.split()[0]
+
+        try:
+            fromCommand = fromMessage.split()[0]
+        except IndexError:
+            return
+
         fromMessage = ' '.join(fromMessage.split()[1:])
         function = None
 
