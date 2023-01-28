@@ -24,6 +24,7 @@ When features are proposed, they'll be added to this list. When features are imp
 * [ ] Ability to use MemoServ to send messages to one or more users
 * [ ] Polling System (Democracy)
 * [ ] Channel Statistics
+* [ ] Permissions system
 
 ## Demonstration console output
 ```$ ./servicex 
