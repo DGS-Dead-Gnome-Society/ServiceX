@@ -88,7 +88,10 @@ class ServiceXProtocol(irc.IRCClient):
             'IDENTIFY %s %s' %
             (self.factory.nickservUsername, self.factory.nickservPassword))
 
-        databaseCursor.execute('SELECT channelName FROM ircChannels WHERE networkID=?', (self.factory.networkID, ))
+        databaseCursor.execute(
+            'SELECT channelName FROM ircChannels WHERE networkID=?',
+            (self.factory.networkID,
+             ))
         channels = databaseCursor.fetchall()
 
         for channel in channels:
@@ -111,16 +114,22 @@ class ServiceXProtocol(irc.IRCClient):
             self.channels.append(channelName)
 
             if queryDatabase is True:
-                databaseCursor.execute('SELECT * FROM ircChannels WHERE channelName=? AND networkID=?', (channelName, self.factory.networkID))
+                databaseCursor.execute(
+                    'SELECT * FROM ircChannels WHERE channelName=? AND networkID=?',
+                    (channelName,
+                     self.factory.networkID))
                 channel = databaseCursor.fetchone()
 
                 if channel is None:
-                    log("info", "Attempting to add channel '%s' to the database." % channelName)
+                    log("info", "Attempting to add channel '%s' to the database." %
+                        channelName)
                     query = """INSERT INTO ircChannels (networkID, channelName) VALUES (?, ?)"""
-                    databaseCursor.execute(query, (self.factory.networkID, channelName))
+                    databaseCursor.execute(
+                        query, (self.factory.networkID, channelName))
                     databaseConnection.commit()
                 else:
-                    log("info", "Channel '%s' already exists in the database." % channelName)
+                    log("info", "Channel '%s' already exists in the database." %
+                        channelName)
 
     def partChannel(self, channelName, queryDatabase=True):
         channelName = channelName.split()[0]
@@ -131,13 +140,17 @@ class ServiceXProtocol(irc.IRCClient):
             self.channels.remove(channelName)
 
             if queryDatabase is True:
-                databaseCursor.execute('SELECT * FROM ircChannels WHERE channelName=? AND networkID=?', (channelName, self.factory.networkID))
+                databaseCursor.execute(
+                    'SELECT * FROM ircChannels WHERE channelName=? AND networkID=?',
+                    (channelName,
+                     self.factory.networkID))
                 channel = databaseCursor.fetchone()
 
                 if channel is not None:
                     log("info", "Attempting to remove channel '%s' from the database." % channelName)
                     query = """DELETE FROM ircChannels WHERE channelName=? AND networkID=?"""
-                    databaseCursor.execute(query, (channelName, self.factory.networkID))
+                    databaseCursor.execute(
+                        query, (channelName, self.factory.networkID))
                     databaseConnection.commit()
         else:
             log("info", "Not in channel '%s'." % channelName)
