@@ -24,12 +24,6 @@ When features are proposed, they'll be added to this list. When features are imp
 * [ ] Polling System (Democracy)
 * [ ] Channel Statistics
 
-## Features that will not be supported and why
-First of all, why add extra features if they really aren't necessary for our needs? Lets try to keep to the KISS (Keep It Simple Stupid) approach.
-* ***SSL and IPv6 support:*** ServiceX has been designed to provide services tailored to the culture and needs of the DGS IRC network and connect via 127.0.0.1
-* ***Multithreading:*** We are a small IRC network so ServiceX won't be receiving much traffic, there are no features proposed at present that require multiple tasks to run concurrently
-* ***Multi-network support:*** This should be obvious
-
 ## Demonstration console output
 ```$ ./servicex 
 2023-01-27 02:05:51+0000 [-] Log opened.
