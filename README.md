@@ -26,16 +26,14 @@ When features are proposed, they'll be added to this list. When features are imp
 
 ## Demonstration console output
 ```$ ./servicex 
-2023-01-27 02:05:51+0000 [-] Log opened.
-2023-01-27 02:05:51+0000 [-] Starting factory <__main__.ServiceXFactory object at 0x7fb3d2742520>
-2023-01-27 02:05:53+0000 [-] Attempting to identify with NickServ as user 'X'.
-2023-01-27 02:05:53+0000 [-] I have joined channel '#DGS-Bots'.
-2023-01-27 02:05:53+0000 [-] I have joined channel '##DGS-Bots'.
-2023-01-27 02:05:53+0000 [-] Successfully identified with NickServ.
-2023-01-27 02:06:09+0000 [-] Command 'ping' sent by 'Helenah!s98259@PoulsKitchen.Club' via channel '#DGS-Bots' was found.
-2023-01-27 02:06:13+0000 [-] Command 'test' sent by 'Helenah!s98259@PoulsKitchen.Club' via channel '#DGS-Bots' was not found.
-2023-01-27 02:06:15+0000 [-] Command 'time' sent by 'Helenah!s98259@PoulsKitchen.Club' via channel '#DGS-Bots' was found.
-2023-01-27 02:06:20+0000 [-] Command 'ping' sent by 'Helenah!s98259@PoulsKitchen.Club' via PM was found.
-2023-01-27 02:06:23+0000 [-] Command 'test' sent by 'Helenah!s98259@PoulsKitchen.Club' via PM was not found.
-2023-01-27 02:06:28+0000 [-] Command '!test' sent by 'Helenah!s98259@PoulsKitchen.Club' via PM was not found.
-2023-01-27 02:06:30+0000 [-] Command 'time' sent by 'Helenah!s98259@PoulsKitchen.Club' via PM was found.```
+2023-01-28 12:24:07+0000 [-] Log opened.
+2023-01-28 12:24:07+0000 [-] Attempting to load database file 'servicex.db'.
+2023-01-28 12:24:07+0000 [-] Starting factory <__main__.ServiceXFactory object at 0x7f0fc6de8bb0>
+2023-01-28 12:24:13+0000 [-] Attempting to identify with NickServ as user 'X'.
+2023-01-28 12:24:13+0000 [-] Attempting to join channel '#bots'.
+2023-01-28 12:24:19+0000 [-] Successfully joined channel '#bots'.
+2023-01-28 12:24:33+0000 [-] Command 'ping' sent by 'Helenah!~s98259@user/helenah' via channel '#bots' was found.
+2023-01-28 12:24:36+0000 [-] Command 'test' sent by 'Helenah!~s98259@user/helenah' via channel '#bots' was not found.
+2023-01-28 12:24:44+0000 [-] Command 'ping' sent by 'Helenah!~s98259@user/helenah' via PM was found.
+2023-01-28 12:24:48+0000 [-] Command '!ping' sent by 'Helenah!~s98259@user/helenah' via PM was not found.
+2023-01-28 12:24:50+0000 [-] Command 'test' sent by 'Helenah!~s98259@user/helenah' via PM was not found.```
