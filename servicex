@@ -74,6 +74,8 @@ class ServiceXProtocol(irc.IRCClient):
         irc.IRCClient.connectionLost(self, reason)
         self.logger.log("disconnected at %s" % timestamp())
         self.logger.close()
+        if reactor.running:
+            reactor.stop()
 
     def signedOn(self):
         str = "Attempting to identify with NickServ as user '%s'." % self.factory.nickservUsername
@@ -210,9 +212,9 @@ class ServiceXFactory(protocol.ClientFactory):
     def clientConnectionLost(self, connector, reason):
         connector.connect()
 
-    def clientConnectionFailed(self, connector, reason):
-        print("connection failed:", reason)
-        reactor.stop()
+#    def clientConnectionFailed(self, connector, reason):
+#        print("connection failed:", reason)
+#        reactor.stop()
 
 
 if __name__ == '__main__':
