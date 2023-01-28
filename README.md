@@ -1,5 +1,5 @@
 # ServiceX
-A pseudo-services bot wrote using the python3-twisted library for the DGS IRC network. We had a Limnoria bot called X which was hosting channel statistics and a polling system however there were a few hardcoded things I didn't like about Limnoria so I decided to re-invent the wheel.
+ServiceX is a database-driven(sqlite3) pseudo-services bot wrote using the python3-twisted library for the DGS IRC network. We had a Limnoria bot called X which was hosting channel statistics and a polling system however there were a few hardcoded things I didn't like about Limnoria so I decided to re-invent the wheel.
 
 ## How to use
 Run servicex-setup to put a fresh database in place and populate it with initial entries:
@@ -15,7 +15,7 @@ DGS has been killing gnomes since 1806, so if you got any gnome pest then DGS is
 When features are proposed, they'll be added to this list. When features are implemented, they'll be checked out.
 * [X] Database support for configuration files and other data (sqlite3)
 * [x] Command interpreter (Commands sent to ServiceX in channels and via PM and seems to fully work)
-* [X] Join channels using the join command (Made persistant in database)
+* [X] Join and part channels using the join and part commands (Made persistant in database)
 * [ ] SASL authentication (Ability to authenticate via SASL upon connect)
 * [ ] Virtual IRC operator (Ability to authenticate as an oper)
 * [ ] Automatically join all channels in the `#DGS-* namespace` (Configurable)
@@ -24,6 +24,7 @@ When features are proposed, they'll be added to this list. When features are imp
 * [ ] Ability to use MemoServ to send messages to one or more users
 * [ ] Polling System (Democracy)
 * [ ] Channel Statistics
+* [ ] Permissions system
 
 ## Demonstration console output
 ```$ ./servicex 
