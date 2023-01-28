@@ -54,6 +54,10 @@ class ServiceXProtocol(irc.IRCClient):
     def command_part(self, target, channelName):
         self.partChannel(channelName)
 
+    def command_cycle(self, target, channelName):
+        self.partChannel(channelName)
+        self.joinChannel(channelName)
+
     def command_ping(self, target, message):
         self.msg(target, "pong!")
 
