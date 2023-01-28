@@ -46,6 +46,9 @@ class ServiceXProtocol(irc.IRCClient):
         self.username = ident
         self.realname = realname
 
+    def command_join(self, target, channelName):
+        self.joinChannel(channelName)
+
     def command_ping(self, target, message):
         self.msg(target, "pong!")
 
@@ -76,18 +79,27 @@ class ServiceXProtocol(irc.IRCClient):
             'IDENTIFY %s %s' %
             (self.factory.nickservUsername, self.factory.nickservPassword))
 
-        databaseCursor.execute(
-            'SELECT * FROM ircChannels WHERE networkID=?', (self.factory.networkID, ))
-
+        databaseCursor.execute('SELECT channelName FROM ircChannels WHERE networkID=?', (self.factory.networkID, ))
         channels = databaseCursor.fetchall()
 
         for channel in channels:
-            channelID, networkID, channelName = channel
-            log("Attempting to join channel '%s'." % channelName)
-            self.join(channelName)
+            self.joinChannel(channel[0])
 
     def joined(self, channel):
         log("Successfully joined channel '%s'." % channel)
+
+    def joinChannel(self, channelName):
+        log("Attempting to join channel '%s'." % channelName)
+        self.join(channelName)
+        databaseCursor.execute('SELECT * FROM ircChannels WHERE channelName=? AND networkID=?', (channelName, self.factory.networkID))
+        channel = databaseCursor.fetchone()
+
+        if channel is None:
+            log("Attempting to add channel '%s' to the database." % channelName)
+            tuple = (self.factory.networkID, channelName)
+            query = """INSERT INTO ircChannels (networkID, channelName) VALUES (?, ?)"""
+            databaseCursor.execute(query, (self.factory.networkID, channelName))
+            databaseConnection.commit()
 
     def privmsg(self, fromString, fromTarget, fromMessage):
         fromNickname, fromString = fromString.split('!')
@@ -152,7 +164,6 @@ class ServiceXProtocol(irc.IRCClient):
 class ServiceXFactory(protocol.ClientFactory):
     def __init__(
             self,
-            filename,
             networkID,
             networkName,
             networkAddress,
@@ -165,7 +176,6 @@ class ServiceXFactory(protocol.ClientFactory):
             operUsername,
             operPassword,
             commandTrigger):
-        self.filename = filename
         self.networkID = networkID
         self.networkName = networkName
         self.networkAddress = networkAddress
@@ -205,7 +215,6 @@ if __name__ == '__main__':
         networkID, networkName, networkAddress, networkPort, nickname, ident, realname, nickservUsername, nickservPassword, operUsername, operPassword, commandTrigger = network
 
         factory = ServiceXFactory(
-            "servicex.log",
             networkID,
             networkName,
             networkAddress,
