@@ -52,14 +52,17 @@ class ServiceXProtocol(irc.IRCClient):
         self.channels = []
 
     def command_joinchan(self, target, channelName, nickname):
-        self.joinChannel(channelName)
+        self.joinChannel(channelName, target)
 
     def command_partchan(self, target, channelName, nickname):
-        self.partChannel(channelName)
+        self.partChannel(channelName, target)
 
     def command_cyclechan(self, target, channelName, nickname):
-        self.partChannel(channelName, False)
-        self.joinChannel(channelName, False)
+        self.partChannel(channelName, target, False)
+        self.joinChannel(channelName, target, False)
+
+    def command_listchans(self, target, message, nickname):
+        self.reply(target, self.listChannels(), nickname)
 
     def command_date(self, target, message, nickname):
         self.reply(target, timestamp("date"), nickname)
@@ -103,8 +106,11 @@ class ServiceXProtocol(irc.IRCClient):
     def parted(self, channelName):
         log("info", "Successfully parted channel '%s'." % channelName)
 
-    def joinChannel(self, channelName, queryDatabase=True):
-        channelName = channelName.split()[0]
+    def joinChannel(self, channelName, target=None, queryDatabase=True):
+        if not channelName:
+            channelName = target
+        else:
+            channelName = channelName.split()[0]
 
         if channelName in self.channels:
             log("info", "Already in channel '%s'." % channelName)
@@ -131,8 +137,11 @@ class ServiceXProtocol(irc.IRCClient):
                     log("info", "Channel '%s' already exists in the database." %
                         channelName)
 
-    def partChannel(self, channelName, queryDatabase=True):
-        channelName = channelName.split()[0]
+    def partChannel(self, channelName, target, queryDatabase=True):
+        if not channelName:
+            channelName = target
+        else:
+            channelName = channelName.split()[0]
 
         if channelName in self.channels:
             log("info", "Attempting to part channel '%s'." % channelName)
@@ -154,6 +163,9 @@ class ServiceXProtocol(irc.IRCClient):
                     databaseConnection.commit()
         else:
             log("info", "Not in channel '%s'." % channelName)
+
+    def listChannels(self):
+        return "I am in %s on this IRC network." % ", ".join(self.channels)
 
     def reply(self, replyTarget, replyMessage, replyNickname):
         if replyNickname is None:
