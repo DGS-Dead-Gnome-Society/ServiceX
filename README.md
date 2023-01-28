@@ -27,14 +27,16 @@ When features are proposed, they'll be added to this list. When features are imp
 
 ## Demonstration console output
 ```$ ./servicex 
-2023-01-28 12:24:07+0000 [-] Log opened.
-2023-01-28 12:24:07+0000 [-] Attempting to load database file 'servicex.db'.
-2023-01-28 12:24:07+0000 [-] Starting factory <__main__.ServiceXFactory object at 0x7f0fc6de8bb0>
-2023-01-28 12:24:13+0000 [-] Attempting to identify with NickServ as user 'X'.
-2023-01-28 12:24:13+0000 [-] Attempting to join channel '#bots'.
-2023-01-28 12:24:19+0000 [-] Successfully joined channel '#bots'.
-2023-01-28 12:24:33+0000 [-] Command 'ping' sent by 'Helenah!~s98259@user/helenah' via channel '#bots' was found.
-2023-01-28 12:24:36+0000 [-] Command 'test' sent by 'Helenah!~s98259@user/helenah' via channel '#bots' was not found.
-2023-01-28 12:24:44+0000 [-] Command 'ping' sent by 'Helenah!~s98259@user/helenah' via PM was found.
-2023-01-28 12:24:48+0000 [-] Command '!ping' sent by 'Helenah!~s98259@user/helenah' via PM was not found.
-2023-01-28 12:24:50+0000 [-] Command 'test' sent by 'Helenah!~s98259@user/helenah' via PM was not found.```
+2023-01-28_19:10:17:info: ServiceX starting up...
+2023-01-28_19:10:17:info: Attempting to load database file 'servicex.db'.
+2023-01-28_19:10:17:info: Successfully made connection with NitoRadio (irc.nitoradio.com:6667).
+2023-01-28_19:10:24:info: Attempting to identify with NickServ as user 'X'.
+2023-01-28_19:10:24:info: Attempting to join channel '#nitoradio'.
+2023-01-28_19:10:24:info: Channel '#nitoradio' already exists in the database.
+2023-01-28_19:10:24:info: Attempting to join channel '#bots'.
+2023-01-28_19:10:24:info: Channel '#bots' already exists in the database.
+2023-01-28_19:10:24:info: Successfully joined channel '#nitoradio'.
+2023-01-28_19:10:24:info: Successfully joined channel '#bots'.
+2023-01-28_19:10:36:info: Command 'ping' sent by 'Helenah!~s98259@06.11.654.623.threembb.co.uk' via channel '#nitoradio' was found.
+2023-01-28_19:10:42:info: Command 'ping' sent by 'nito!~nito@89.187.lmw.jys' via channel '#nitoradio' was found.
+2023-01-28_19:10:43:info: Command 'test' sent by 'Helenah!~s98259@06.11.654.623.threembb.co.uk' via channel '#nitoradio' was not found.
