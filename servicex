@@ -6,6 +6,7 @@ from datetime import datetime
 from sqlite3 import connect, Error
 from os.path import isfile
 
+
 def timestamp(dt=None):
     now = datetime.now()
 
@@ -21,6 +22,7 @@ def timestamp(dt=None):
 
 def log(entry):
     print("%s: %s" % (timestamp(), entry))
+
 
 def databaseConnect(databaseFile):
     conn = None
@@ -55,16 +57,19 @@ class ServiceXProtocol(irc.IRCClient):
 
     def connectionMade(self):
         irc.IRCClient.connectionMade(self)
-        log("Successfully made connection with %s (%s:%s)." % (self.factory.networkName, self.factory.networkAddress, self.factory.networkPort))
+        log("Successfully made connection with %s (%s:%s)." % (
+            self.factory.networkName, self.factory.networkAddress, self.factory.networkPort))
 
     def connectionLost(self, reason):
         irc.IRCClient.connectionLost(self, reason)
-        log("Connection with %s (%s:%s) has been lost." % (self.factory.networkName, self.factory.networkAddress, self.factory.networkPort))
+        log("Connection with %s (%s:%s) has been lost." % (
+            self.factory.networkName, self.factory.networkAddress, self.factory.networkPort))
         if reactor.running:
             reactor.stop()
 
     def signedOn(self):
-        log("Attempting to identify with NickServ as user '%s'." % self.factory.nickservUsername)
+        log("Attempting to identify with NickServ as user '%s'." %
+            self.factory.nickservUsername)
 
         self.msg(
             'NickServ',
@@ -96,11 +101,13 @@ class ServiceXProtocol(irc.IRCClient):
             try:
                 function = getattr(self, 'command_%s' % fromCommand)
             except AttributeError:
-                log("Command '%s' sent by '%s!%s@%s' via PM was not found." % (fromCommand, fromNickname, fromIdent, fromHostname))
+                log("Command '%s' sent by '%s!%s@%s' via PM was not found." %
+                    (fromCommand, fromNickname, fromIdent, fromHostname))
                 self.msg(fromNickname, "Command not found")
                 return
 
-            log("Command '%s' sent by '%s!%s@%s' via PM was found." % (fromCommand, fromNickname, fromIdent, fromHostname))
+            log("Command '%s' sent by '%s!%s@%s' via PM was found." %
+                (fromCommand, fromNickname, fromIdent, fromHostname))
             function(fromNickname, fromMessage)
 
         if fromCommand.startswith(self.factory.commandTrigger):
@@ -109,11 +116,13 @@ class ServiceXProtocol(irc.IRCClient):
             try:
                 function = getattr(self, 'command_%s' % fromCommand)
             except AttributeError:
-                log("Command '%s' sent by '%s!%s@%s' via channel '%s' was not found." % (fromCommand, fromNickname, fromIdent, fromHostname, fromTarget))
+                log("Command '%s' sent by '%s!%s@%s' via channel '%s' was not found." %
+                    (fromCommand, fromNickname, fromIdent, fromHostname, fromTarget))
                 self.msg(fromTarget, "Command not found")
                 return
 
-            log("Command '%s' sent by '%s!%s@%s' via channel '%s' was found." % (fromCommand, fromNickname, fromIdent, fromHostname, fromTarget))
+            log("Command '%s' sent by '%s!%s@%s' via channel '%s' was found." %
+                (fromCommand, fromNickname, fromIdent, fromHostname, fromTarget))
             function(fromTarget, fromMessage)
 
         if function is None:
