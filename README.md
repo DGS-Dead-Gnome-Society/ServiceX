@@ -23,7 +23,7 @@ DGS has been killing gnomes since 1806, so if you got any gnome pest then DGS is
 
 ## Feature Checklist
 When features are proposed, they'll be added to this list. When features are implemented, they'll be checked out.
-* [X] Database support for configuration files and other data (sqlite3)
+* [X] Database support for configuration and other data (sqlite3)
 * [x] Command interpreter (Commands sent to ServiceX in channels and via PM and seems to fully work)
 * [X] Join, part, cycle channels using the join, part and cycle commands (Made persistant in database)
 * [X] Date and time commands
