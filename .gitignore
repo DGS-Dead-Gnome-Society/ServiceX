@@ -1,2 +1,3 @@
-servicex.log
+logs
 servicex.db
+modules/__pycache__

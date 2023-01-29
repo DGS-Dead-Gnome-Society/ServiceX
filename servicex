@@ -6,6 +6,7 @@ from datetime import datetime
 from sqlite3 import connect, Error
 from os.path import isfile
 from importlib.util import spec_from_file_location, module_from_spec
+from shlex import split
 
 def timestamp(dt=None):
     now = datetime.now()
@@ -38,6 +39,14 @@ def databaseConnect(databaseFile):
 
     return conn
 
+def tableCreate(databaseTable):
+    databaseConnection = databaseConnect("servicex.log")
+    try:
+        databaseCursor = databaseConnection.cursor()
+        databaseCursor.execute(databaseTable)
+    except Error as e:
+        print(e)
+
 
 class ServiceXProtocol(irc.IRCClient):
     versionEnv = ""
@@ -51,6 +60,7 @@ class ServiceXProtocol(irc.IRCClient):
         self.realname = realname
         self.channels = []
         self.timestamp = timestamp
+        self.tableCreate = tableCreate
 
     def connectionMade(self):
         irc.IRCClient.connectionMade(self)
@@ -80,7 +90,7 @@ class ServiceXProtocol(irc.IRCClient):
         channels = databaseCursor.fetchall()
 
         for channel in channels:
-            self.joinChannel(channel[0])
+            self.chanJoin(channel[0])
 
     def joined(self, channelName):
         log("info", "Successfully joined channel '%s'." % channelName)
@@ -88,7 +98,7 @@ class ServiceXProtocol(irc.IRCClient):
     def parted(self, channelName):
         log("info", "Successfully parted channel '%s'." % channelName)
 
-    def joinChannel(self, channelName, target=None, queryDatabase=True):
+    def chanJoin(self, channelName, target=None, queryDatabase=True):
         if not channelName:
             channelName = target
         else:
@@ -119,7 +129,7 @@ class ServiceXProtocol(irc.IRCClient):
                     log("info", "Channel '%s' already exists in the database." %
                         channelName)
 
-    def partChannel(self, channelName, target, queryDatabase=True):
+    def chanPart(self, channelName, target, queryDatabase=True):
         if not channelName:
             channelName = target
         else:
@@ -146,25 +156,17 @@ class ServiceXProtocol(irc.IRCClient):
         else:
             log("info", "Not in channel '%s'." % channelName)
 
-    def listChannels(self):
-        if len(self.channels) == 0:
-            return "I am not in any channels on this IRC network."
-        elif len(self.channels) == 1:
-            return "I am in %s on this IRC network." % self.channels[0]
+    def msgSend(self, msgSendTarget, msgSendNickname, msgSendMessage):
+        if msgSendNickname is None:
+            self.msg(msgSendTarget, "%s: %s" % (msgSendTarget, msgSendMessage))
         else:
-            return "I am in %s and %s on this IRC network." % (", ".join(self.channels[:-1]), self.channels[-1:][0])
+            self.msg(msgSendTarget, "%s: %s" % (msgSendNickname, msgSendMessage))
 
-    def reply(self, replyTarget, replyMessage, replyNickname):
-        if replyNickname is None:
-            self.msg(replyTarget, "%s: %s" % (replyTarget, replyMessage))
-        else:
-            self.msg(replyTarget, "%s: %s" % (replyNickname, replyMessage))
-
-    def callModule(self, moduleName, fromTarget, fromMessage, fromNickname):
+    def callModule(self, moduleName, fromTarget, fromNickname, fromMessage):
         moduleSpec = spec_from_file_location(moduleName, "modules/%s.py" % moduleName)
         module = module_from_spec(moduleSpec)
         moduleSpec.loader.exec_module(module)
-        module.run(self, fromTarget, fromMessage, fromNickname)
+        module.run(self, fromTarget, fromNickname, fromMessage)
 
     def privmsg(self, fromString, fromTarget, fromMessage):
         fromNickname, fromString = fromString.split('!')
@@ -176,16 +178,15 @@ class ServiceXProtocol(irc.IRCClient):
         except IndexError:
             return
 
-        fromMessage = ' '.join(fromMessage.split()[1:])
-        function = None
+        fromMessage = split(fromMessage)[1:]
 
         if fromTarget == self.nickname:
             try:
-                self.callModule("command_%s" % fromCommand, fromNickname, fromMessage, fromNickname)
+                self.callModule("command_%s" % fromCommand, fromNickname, fromNickname, fromMessage)
             except FileNotFoundError:
                 log("info", "Command '%s' sent by '%s!%s@%s' via PM was not found." %
                     (fromCommand, fromNickname, fromIdent, fromHostname))
-                self.reply(fromNickname, "Command not found.", fromNickname)
+                self.msgSend(fromNickname, fromNickname, "Command not found.")
                 return
 
             log("info", "Command '%s' sent by '%s!%s@%s' via PM was found." %
@@ -195,11 +196,11 @@ class ServiceXProtocol(irc.IRCClient):
             fromCommand = fromCommand.lstrip(self.factory.commandTrigger)
 
             try:
-                self.callModule("command_%s" % fromCommand, fromTarget, fromMessage, fromNickname)
+                self.callModule("command_%s" % fromCommand, fromTarget, fromNickname, fromMessage)
             except FileNotFoundError:
                 log("info", "Command '%s' sent by '%s!%s@%s' via channel '%s' was not found." %
                     (fromCommand, fromNickname, fromIdent, fromHostname, fromTarget))
-                self.reply(fromTarget, "Command not found.", fromNickname)
+                self.msgSend(fromTarget, fromNickname, "Command not found.")
                 return
 
             log("info", "Command '%s' sent by '%s!%s@%s' via channel '%s' was found." %
