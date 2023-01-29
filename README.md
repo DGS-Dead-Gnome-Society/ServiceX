@@ -9,9 +9,10 @@ Then run servicex:
 ```./servicex```
 
 A list of commands:
-* Join a channel: ```!joinchan <channel>```
-* Part a channel: ```!partchan [channel]```
-* List channels: ```!listchans```
+* Join a channel: ```!channel join <channel>```
+* Part a channel: ```!channel part [channel]```
+* Cycle a channel: ```!channel cycle [channel]```
+* List channels: ```!channel list```
 * Request the date: ```!date```
 * Request the time: ```!time```
 
