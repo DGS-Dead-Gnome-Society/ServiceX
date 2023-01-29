@@ -14,11 +14,8 @@ def run(self, target, nickname, message):
         else:
             self.msgSend(target, nickname, "Not enough parameters.")
 
-    elif subCommand == "date":
-        self.msgSend(target, nickname, self.timestamp("date"))
-
-    elif subCommand == "time":
-        self.msgSend(target, nickname, self.timestamp("time"))
+    elif subCommand == "date" or "time":
+        self.msgSend(target, nickname, self.timestamp(subCommand))
 
     else:
         self.msgSend(target, nickname, "Subcommand not found.")
