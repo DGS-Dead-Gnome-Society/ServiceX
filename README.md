@@ -28,6 +28,7 @@ When features are proposed, they'll be added to this list. When features are imp
 * [X] Join, part, cycle channels using the join, part and cycle commands (Made persistant in database)
 * [X] Date and time commands
 * [X] Module engine
+* [X] Can construct dataframes to be sent over IRC
 * [ ] SASL authentication (Ability to authenticate via SASL upon connect)
 * [ ] Virtual IRC operator (Ability to authenticate as an oper)
 * [ ] Automatically join all channels in the `#DGS-* namespace` (Configurable)
