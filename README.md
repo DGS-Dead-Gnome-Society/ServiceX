@@ -41,7 +41,8 @@ When features are proposed, they'll be added to this list. When features are imp
 ## Demonstration console output
 ```$ ./servicex 
 2023-01-28_19:10:17:info: ServiceX starting up...
-2023-01-28_19:10:17:info: Attempting to load database file 'servicex.db'.
+2023-01-28_19:10:17:info: Checking if database file 'servicex.db' exists.
+2023-01-28_19:10:17:info: Attempting to connect to the database.
 2023-01-28_19:10:17:info: Successfully made connection with NitoRadio (irc.nitoradio.com:6667).
 2023-01-28_19:10:24:info: Attempting to identify with NickServ as user 'X'.
 2023-01-28_19:10:24:info: Attempting to join channel '#nitoradio'.
