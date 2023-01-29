@@ -167,18 +167,17 @@ class ServiceXProtocol(irc.IRCClient):
 
     def msgSend(self, msgSendTarget, msgSendNickname, msgSendMessage):
         strings = msgSendMessage.split('\\n')
+
         if msgSendNickname is None:
-            for string in strings:
-                if "\\t" in string:
-                    tabs = 4
-                    string = string.replace("\\t", " " * tabs)
-                self.msg(msgSendTarget, "%s: %s" % (msgSendTarget, string))
+            target = msgSendTarget
         else:
-            for string in strings:
-                if "\\t" in string:
-                    tabs = 4
-                    string = string.replace("\\t", " " * tabs)
-                self.msg(msgSendTarget, "%s: %s" % (msgSendNickname, string))
+            target = msgSendNickname
+
+        for string in strings:
+            if "\\t" in string:
+                tabs = 4
+                string = string.replace("\\t", " " * tabs)
+            self.msg(msgSendTarget, "%s: %s" % (target, string))
 
     def callModule(self, moduleName, fromTarget, fromNickname, fromMessage):
         moduleSpec = spec_from_file_location(moduleName, "modules/%s.py" % moduleName)
