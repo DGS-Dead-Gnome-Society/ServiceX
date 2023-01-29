@@ -62,6 +62,15 @@ class ServiceXProtocol(irc.IRCClient):
         self.timestamp = timestamp
         self.tableCreate = tableCreate
 
+    def tagParse(self, string):
+        if "<date>" in string:
+            string = string.replace("<date>", timestamp("date"))
+
+        if "<time>" in string:
+            string = string.replace("<time>", timestamp("time"))
+
+        return string
+
     def connectionMade(self):
         irc.IRCClient.connectionMade(self)
         log("info", "Successfully made connection with %s (%s:%s)." % (
@@ -157,10 +166,19 @@ class ServiceXProtocol(irc.IRCClient):
             log("info", "Not in channel '%s'." % channelName)
 
     def msgSend(self, msgSendTarget, msgSendNickname, msgSendMessage):
+        strings = msgSendMessage.split('\\n')
         if msgSendNickname is None:
-            self.msg(msgSendTarget, "%s: %s" % (msgSendTarget, msgSendMessage))
+            for string in strings:
+                if "\\t" in string:
+                    tabs = 4
+                    string = string.replace("\\t", " " * tabs)
+                self.msg(msgSendTarget, "%s: %s" % (msgSendTarget, string))
         else:
-            self.msg(msgSendTarget, "%s: %s" % (msgSendNickname, msgSendMessage))
+            for string in strings:
+                if "\\t" in string:
+                    tabs = 4
+                    string = string.replace("\\t", " " * tabs)
+                self.msg(msgSendTarget, "%s: %s" % (msgSendNickname, string))
 
     def callModule(self, moduleName, fromTarget, fromNickname, fromMessage):
         moduleSpec = spec_from_file_location(moduleName, "modules/%s.py" % moduleName)
