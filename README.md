@@ -9,6 +9,7 @@ Then run servicex:
 ```./servicex```
 
 **A list of commands:**
+
 Required arguments are surrounded in triangular brackets.
 Optional arguments are surrounded in square brackets.
 A pipe is used to delimit choices which can be passed as an argument.
