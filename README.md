@@ -24,10 +24,10 @@ When features are proposed, they'll be added to this list. When features are imp
 * [x] Command interpreter (Commands sent to ServiceX in channels and via PM and seems to fully work)
 * [X] Join, part, cycle channels using the join, part and cycle commands (Made persistant in database)
 * [X] Date and time commands
+* [X] Module engine
 * [ ] SASL authentication (Ability to authenticate via SASL upon connect)
 * [ ] Virtual IRC operator (Ability to authenticate as an oper)
 * [ ] Automatically join all channels in the `#DGS-* namespace` (Configurable)
-* [ ] Module engine
 * [ ] Verification of users based on the NickServ account username shown in their WHOIS
 * [ ] Ability to use MemoServ to send messages to one or more users
 * [ ] Polling System (Democracy)
