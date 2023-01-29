@@ -4,20 +4,6 @@ ServiceX is a database-driven(sqlite3) pseudo-services bot wrote using the pytho
 ## How to use
 Read the [wiki](https://github.com/DGS-Dead-Gnome-Society/ServiceX/wiki).
 
-**A list of commands:**
-
-Required arguments are surrounded in triangular brackets.
-Optional arguments are surrounded in square brackets.
-A pipe is used to delimit choices which can be passed as an argument.
-* Join a channel: ```!channel join <channel>```
-* Part a channel: ```!channel part [channel]```
-* Cycle a channel: ```!channel cycle [channel]```
-* List channels: ```!channel list [count|fancy]```
-* Request the date: ```!utilities date```
-* Request the time: ```!utilities time```
-* Echo command: ```!utilities echo```
-* Get a developers excuse: ```!fun why```
-
 ## What is DGS (Dead Gnome Sociaty)?
 DGS has been killing gnomes since 1806, so if you got any gnome pest then DGS is who you wanna call. Actually that was a joke but here's the truth, DGS (Dead Gnome Society) started in 2005 as a WoW (World of Warcraft) guild that started to kill gnomes (a WoW race). The guild is strong as ever today and has also evolved into an IRC network with a lot of amazing people to help you, and chat with. If you want to see what we are about then feel free to connect to our IRC network at irc.poulskitchen.club on port 6667 or port 6697 (For SSL) and don't forget to read the MOTD.
 
