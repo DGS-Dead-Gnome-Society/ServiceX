@@ -7,10 +7,8 @@ def run(self, target, nickname, message):
 
     if subCommand == "echo":
         if len(message) > 1:
-            strings = message[1].split('\\n')
+            self.msgSend(target, nickname, self.tagParse(message[1]))
 
-            for string in strings:
-                self.msgSend(target, nickname, string)
         else:
             self.msgSend(target, nickname, "Not enough parameters.")
 
