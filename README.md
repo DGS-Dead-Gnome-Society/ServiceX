@@ -2,11 +2,7 @@
 ServiceX is a database-driven(sqlite3) pseudo-services bot wrote using the python3-twisted library for the DGS IRC network. We had a Limnoria bot called X which was hosting channel statistics and a polling system however there were a few hardcoded things I didn't like about Limnoria so I decided to re-invent the wheel.
 
 ## How to use
-Run servicex-setup to put a fresh database in place and populate it with initial entries:
-```./servicex-setup```
-
-Then run servicex:
-```./servicex```
+Read the 
 
 **A list of commands:**
 
