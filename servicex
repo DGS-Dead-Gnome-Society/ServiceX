@@ -5,7 +5,7 @@ from twisted.internet import reactor, protocol
 from datetime import datetime
 from sqlite3 import connect, Error
 from os.path import isfile
-
+from importlib.util import spec_from_file_location, module_from_spec
 
 def timestamp(dt=None):
     now = datetime.now()
@@ -50,25 +50,7 @@ class ServiceXProtocol(irc.IRCClient):
         self.username = ident
         self.realname = realname
         self.channels = []
-
-    def command_joinchan(self, target, channelName, nickname):
-        self.joinChannel(channelName, target)
-
-    def command_partchan(self, target, channelName, nickname):
-        self.partChannel(channelName, target)
-
-    def command_cyclechan(self, target, channelName, nickname):
-        self.partChannel(channelName, target, False)
-        self.joinChannel(channelName, target, False)
-
-    def command_listchans(self, target, message, nickname):
-        self.reply(target, self.listChannels(), nickname)
-
-    def command_date(self, target, message, nickname):
-        self.reply(target, timestamp("date"), nickname)
-
-    def command_time(self, target, message, nickname):
-        self.reply(target, timestamp("time"), nickname)
+        self.timestamp = timestamp
 
     def connectionMade(self):
         irc.IRCClient.connectionMade(self)
@@ -165,13 +147,24 @@ class ServiceXProtocol(irc.IRCClient):
             log("info", "Not in channel '%s'." % channelName)
 
     def listChannels(self):
-        return "I am in %s on this IRC network." % ", ".join(self.channels)
+        if len(self.channels) == 0:
+            return "I am not in any channels on this IRC network."
+        elif len(self.channels) == 1:
+            return "I am in %s on this IRC network." % self.channels[0]
+        else:
+            return "I am in %s and %s on this IRC network." % (", ".join(self.channels[:-1]), self.channels[-1:][0])
 
     def reply(self, replyTarget, replyMessage, replyNickname):
         if replyNickname is None:
             self.msg(replyTarget, "%s: %s" % (replyTarget, replyMessage))
         else:
             self.msg(replyTarget, "%s: %s" % (replyNickname, replyMessage))
+
+    def callModule(self, moduleName, fromTarget, fromMessage, fromNickname):
+        moduleSpec = spec_from_file_location(moduleName, "modules/%s.py" % moduleName)
+        module = module_from_spec(moduleSpec)
+        moduleSpec.loader.exec_module(module)
+        module.run(self, fromTarget, fromMessage, fromNickname)
 
     def privmsg(self, fromString, fromTarget, fromMessage):
         fromNickname, fromString = fromString.split('!')
@@ -188,8 +181,8 @@ class ServiceXProtocol(irc.IRCClient):
 
         if fromTarget == self.nickname:
             try:
-                function = getattr(self, 'command_%s' % fromCommand)
-            except AttributeError:
+                self.callModule("command_%s" % fromCommand, fromNickname, fromMessage, fromNickname)
+            except FileNotFoundError:
                 log("info", "Command '%s' sent by '%s!%s@%s' via PM was not found." %
                     (fromCommand, fromNickname, fromIdent, fromHostname))
                 self.reply(fromNickname, "Command not found.", fromNickname)
@@ -197,14 +190,13 @@ class ServiceXProtocol(irc.IRCClient):
 
             log("info", "Command '%s' sent by '%s!%s@%s' via PM was found." %
                 (fromCommand, fromNickname, fromIdent, fromHostname))
-            function(fromNickname, fromMessage, fromNickname)
 
         if fromCommand.startswith(self.factory.commandTrigger):
             fromCommand = fromCommand.lstrip(self.factory.commandTrigger)
 
             try:
-                function = getattr(self, 'command_%s' % fromCommand)
-            except AttributeError:
+                self.callModule("command_%s" % fromCommand, fromTarget, fromMessage, fromNickname)
+            except FileNotFoundError:
                 log("info", "Command '%s' sent by '%s!%s@%s' via channel '%s' was not found." %
                     (fromCommand, fromNickname, fromIdent, fromHostname, fromTarget))
                 self.reply(fromTarget, "Command not found.", fromNickname)
@@ -212,10 +204,6 @@ class ServiceXProtocol(irc.IRCClient):
 
             log("info", "Command '%s' sent by '%s!%s@%s' via channel '%s' was found." %
                 (fromCommand, fromNickname, fromIdent, fromHostname, fromTarget))
-            function(fromTarget, fromMessage, fromNickname)
-
-        if function is None:
-            return
 
     def noticed(self, user, channel, msg):
         if user == "NickServ!services@services.":
