@@ -8,11 +8,14 @@ Run servicex-setup to put a fresh database in place and populate it with initial
 Then run servicex:
 ```./servicex```
 
-A list of commands:
+**A list of commands:**
+Required arguments are surrounded in triangular brackets.
+Optional arguments are surrounded in square brackets.
+A pipe is used to delimit choices which can be passed as an argument.
 * Join a channel: ```!channel join <channel>```
 * Part a channel: ```!channel part [channel]```
 * Cycle a channel: ```!channel cycle [channel]```
-* List channels: ```!channel list```
+* List channels: ```!channel list [count|fancy]```
 * Request the date: ```!utilities date```
 * Request the time: ```!utilities time```
 * Echo command: ```!utilities echo```
