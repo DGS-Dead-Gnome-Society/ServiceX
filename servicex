@@ -7,7 +7,10 @@ from sqlite3 import connect, Error
 from os.path import isfile
 from importlib.util import spec_from_file_location, module_from_spec
 from shlex import split
+from tabulate import tabulate
 
+
+# Create a timestamp
 def timestamp(dt=None):
     now = datetime.now()
 
@@ -21,6 +24,7 @@ def timestamp(dt=None):
         return now.strftime("%H:%M:%S")
 
 
+# Message logger (stdout and file)
 def log(type, entry):
     if type in ('info', 'warning', 'error'):
         str = "%s:%s: %s" % (timestamp(), type, entry)
@@ -29,6 +33,7 @@ def log(type, entry):
             print(str)
 
 
+# Used to connect to the database
 def databaseConnect(databaseFile):
     conn = None
     try:
@@ -39,6 +44,8 @@ def databaseConnect(databaseFile):
 
     return conn
 
+
+# Used to create a table in the database
 def tableCreate(databaseTable):
     databaseConnection = databaseConnect("servicex.log")
     try:
@@ -62,6 +69,8 @@ class ServiceXProtocol(irc.IRCClient):
         self.timestamp = timestamp
         self.tableCreate = tableCreate
 
+    # Used to parse "tags" (terms in strings surrounded in triangular
+    # brackets) and replaces tags with data
     def tagParse(self, string):
         if "<date>" in string:
             string = string.replace("<date>", timestamp("date"))
@@ -71,11 +80,39 @@ class ServiceXProtocol(irc.IRCClient):
 
         return string
 
+    # Construct a dataframe to be sent for passing to self.msgSend()
+    def frameData(self, headers, rows):
+        dataframe = ""
+        count = 0
+
+        # This is an En Quad character and not a standard space
+        headers = [' '] + headers
+
+        rowsModified = []
+
+        for row in rows:
+            row = [count] + row
+            count += 1
+            rowsModified.append(row)
+
+        rows = tabulate(
+            rowsModified,
+            headers=headers,
+            tablefmt="plain").split('\n')
+
+        for row in rows:
+            row = row.lstrip("  ") + "\\n"
+            dataframe += row
+
+        return dataframe.rstrip("\\n")
+
+    # Called upon connection made
     def connectionMade(self):
         irc.IRCClient.connectionMade(self)
         log("info", "Successfully made connection with %s (%s:%s)." % (
             self.factory.networkName, self.factory.networkAddress, self.factory.networkPort))
 
+    # Called upon connection lost
     def connectionLost(self, reason):
         irc.IRCClient.connectionLost(self, reason)
         log("warning", "Connection with %s (%s:%s) has been lost." % (
@@ -83,6 +120,8 @@ class ServiceXProtocol(irc.IRCClient):
         if reactor.running:
             reactor.stop()
 
+    # Called after server has processed the USER and NICK messages and
+    # returned a response
     def signedOn(self):
         log("info", "Attempting to identify with NickServ as user '%s'." %
             self.factory.nickservUsername)
@@ -101,12 +140,15 @@ class ServiceXProtocol(irc.IRCClient):
         for channel in channels:
             self.chanJoin(channel[0])
 
+    # Called upon successful join to a channel
     def joined(self, channelName):
         log("info", "Successfully joined channel '%s'." % channelName)
 
+    # Called upon successful part from a channel
     def parted(self, channelName):
         log("info", "Successfully parted channel '%s'." % channelName)
 
+    # Used to join channel and add to database
     def chanJoin(self, channelName, target=None, queryDatabase=True):
         if not channelName:
             channelName = target
@@ -138,6 +180,7 @@ class ServiceXProtocol(irc.IRCClient):
                     log("info", "Channel '%s' already exists in the database." %
                         channelName)
 
+    # Used to part channel and remove from database
     def chanPart(self, channelName, target, queryDatabase=True):
         if not channelName:
             channelName = target
@@ -165,6 +208,7 @@ class ServiceXProtocol(irc.IRCClient):
         else:
             log("info", "Not in channel '%s'." % channelName)
 
+    # Used to send message to a user or in a channel
     def msgSend(self, msgSendTarget, msgSendNickname, msgSendMessage):
         strings = msgSendMessage.split('\\n')
 
@@ -179,12 +223,16 @@ class ServiceXProtocol(irc.IRCClient):
                 string = string.replace("\\t", " " * tabs)
             self.msg(msgSendTarget, "%s: %s" % (target, string))
 
+    # Used to call a module
     def callModule(self, moduleName, fromTarget, fromNickname, fromMessage):
-        moduleSpec = spec_from_file_location(moduleName, "modules/%s.py" % moduleName)
+        moduleSpec = spec_from_file_location(
+            moduleName, "modules/%s.py" %
+            moduleName)
         module = module_from_spec(moduleSpec)
         moduleSpec.loader.exec_module(module)
         module.run(self, fromTarget, fromNickname, fromMessage)
 
+    # Used upon receiving a PRIVMSG message from the server
     def privmsg(self, fromString, fromTarget, fromMessage):
         fromNickname, fromString = fromString.split('!')
         fromIdent, fromHostname = fromString.split('@')
@@ -197,9 +245,16 @@ class ServiceXProtocol(irc.IRCClient):
 
         fromMessage = split(fromMessage)[1:]
 
+        # The two if statements are for command interpretation and loading
+        # command_*.py modules
         if fromTarget == self.nickname:
             try:
-                self.callModule("command_%s" % fromCommand, fromNickname, fromNickname, fromMessage)
+                self.callModule(
+                    "command_%s" %
+                    fromCommand,
+                    fromNickname,
+                    fromNickname,
+                    fromMessage)
             except FileNotFoundError:
                 log("info", "Command '%s' sent by '%s!%s@%s' via PM was not found." %
                     (fromCommand, fromNickname, fromIdent, fromHostname))
@@ -213,7 +268,12 @@ class ServiceXProtocol(irc.IRCClient):
             fromCommand = fromCommand.lstrip(self.factory.commandTrigger)
 
             try:
-                self.callModule("command_%s" % fromCommand, fromTarget, fromNickname, fromMessage)
+                self.callModule(
+                    "command_%s" %
+                    fromCommand,
+                    fromTarget,
+                    fromNickname,
+                    fromMessage)
             except FileNotFoundError:
                 log("info", "Command '%s' sent by '%s!%s@%s' via channel '%s' was not found." %
                     (fromCommand, fromNickname, fromIdent, fromHostname, fromTarget))
@@ -223,6 +283,7 @@ class ServiceXProtocol(irc.IRCClient):
             log("info", "Command '%s' sent by '%s!%s@%s' via channel '%s' was found." %
                 (fromCommand, fromNickname, fromIdent, fromHostname, fromTarget))
 
+    # Used upon receiving a NOTICE message from the server
     def noticed(self, user, channel, msg):
         if user == "NickServ!services@services.":
             if msg == "Password accepted - you are now recognized.":
@@ -231,6 +292,7 @@ class ServiceXProtocol(irc.IRCClient):
             if "isn't registered." in msg:
                 log("info", "Failed to identify with NickServ.")
 
+    # Used upon nicname collision
     def alterCollidedNick(self, nickname):
         return nickname + '_'
 
@@ -274,18 +336,27 @@ class ServiceXFactory(protocol.ClientFactory):
 
 if __name__ == '__main__':
     log("info", "ServiceX starting up...")
+
+    # Check if database file exists or not, exit program if doesn't
     if isfile('servicex.db'):
-        log("info", "Attempting to load database file 'servicex.db'.")
+        log("info", "Checking if database file 'servicex.db' exists.")
     else:
         log("error", "Database file does not exist. Are you sure you ran 'servicex-setup' first?")
         exit()
 
-    databaseConnection = databaseConnect("servicex.db")
-    databaseCursor = databaseConnection.cursor()
+    # Attempt to connect to database and set cursor
+    try:
+        log("info", "Attempting to connect to the database.")
+        databaseConnection = databaseConnect("servicex.db")
+        databaseCursor = databaseConnection.cursor()
+    except BaseException:
+        raise
 
+    # Get all data from the ircNetworks table
     databaseCursor.execute('SELECT * FROM ircNetworks')
     networks = databaseCursor.fetchall()
 
+    # Create a factory and reactor per network in the ircNetworks table
     for network in networks:
         networkID, networkName, networkAddress, networkPort, nickname, ident, realname, nickservUsername, nickservPassword, operUsername, operPassword, commandTrigger = network
 
