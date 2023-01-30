@@ -1,5 +1,5 @@
 # ServiceX
-ServiceX is a database-driven(sqlite3) pseudo-services bot wrote using the python3-twisted library for the DGS (Dead Gnome Society) IRC network. We had a Limnoria bot called X which was hosting channel statistics and a polling system however there were a few hardcoded things I didn't like about Limnoria so I decided to re-invent the wheel.
+ServiceX is a database-driven (sqlite3) pseudo-services bot wrote using the python3-twisted library for the DGS (Dead Gnome Society) IRC network. We had a Limnoria bot called X which was hosting channel statistics and a polling system however there were a few hardcoded things I didn't like about Limnoria so I decided to re-invent the wheel.
 
 ## How to use
 Read the [wiki](https://github.com/DGS-Dead-Gnome-Society/ServiceX/wiki), if you don't read the wiki then I won't help you.
@@ -13,7 +13,7 @@ When features are proposed, they'll be added to this list. When features are imp
 * [x] Command interpreter (Commands sent to ServiceX in channels and via PM and seems to fully work)
 * [X] Join, part, cycle channels using the join, part and cycle commands (Made persistant in database)
 * [X] Date and time commands
-* [X] Module engine
+* [X] Database-driven module engine
 * [X] Can construct dataframes to be sent over IRC
 * [ ] SASL authentication (Ability to authenticate via SASL upon connect)
 * [ ] Virtual IRC operator (Ability to authenticate as an oper)
