@@ -45,6 +45,13 @@ def main():
                                     commandTrigger text NOT NULL
                                 );"""
 
+    modulesTable = """CREATE TABLE IF NOT EXISTS modules (
+                                    ID integer PRIMARY KEY,
+                                    networkID integer NOT NULL,
+                                    moduleName text NOT NULL,
+                                    moduleEnabled text NOT NULL
+                                );"""
+
     channelsTable = """CREATE TABLE IF NOT EXISTS ircChannels (
                                     ID integer PRIMARY KEY,
                                     networkID integer NOT NULL,
@@ -53,6 +60,7 @@ def main():
 
     if databaseConnection is not None:
         tableCreate(databaseConnection, networksTable)
+        tableCreate(databaseConnection, modulesTable)
         tableCreate(databaseConnection, channelsTable)
 
         nickname = input("What would you like my nickname to be? ")
@@ -64,6 +72,7 @@ def main():
             "What is the address of the IRC network you would like me to connect to? ")
         networkPort = input(
             "What is the port of the IRC network you would like me to connect to? ")
+        networkModulesList = input("Which modules would you like me to have enabled for this IRC network (Must be a space seperated list)? ")
         nickservUsername = input("What is my NickServ username? ")
         nickservPassword = input("What is my NickServ password? ")
         operUsername = input("What is my oper username? ")
@@ -85,9 +94,22 @@ def main():
             commandTrigger)
 
         query = """INSERT INTO ircNetworks (networkName, networkAddress, networkPort, nickname, ident, realname, nickservUsername, nickservPassword, operUsername, operPassword, commandTrigger) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"""
-
         databaseCursor.execute(query, tuple)
         databaseConnection.commit()
+
+        fullModulesList = ['utilities', 'channel', 'fun', 'test']
+
+        for moduleName in fullModulesList:
+            if moduleName in networkModulesList.split():
+                moduleEnabled = 1
+            else:
+                moduleEnabled = 0
+
+            tuple = (1, moduleName, moduleEnabled)
+            query = """INSERT INTO modules (networkID, moduleName, moduleEnabled) VALUES (?, ?, ?)"""
+            databaseCursor.execute(query, tuple)
+            databaseConnection.commit()
+
         tuple = (1, channelName)
         query = """INSERT INTO ircChannels (networkID, channelName) VALUES (?, ?)"""
         databaseCursor.execute(query, tuple)
