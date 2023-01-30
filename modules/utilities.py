@@ -19,63 +19,57 @@ def command_time(self, arguments):
     target, nickname, message = arguments
     self.msgSend(target, nickname, self.timestamp("time"))
 
-def command_modlist(self, arguments):
+def command_module(self, arguments):
     target, nickname, message = arguments
-    modlist = []
+    subCommand = message[0]
+    arguments = message[1:]
 
-    for module in self.modules:
-        modlist.append(module.__name__)
+    if subCommand == "list":
+        modlist = []
 
-    self.msgSend(target, nickname, ", ".join(modlist))
+        for module in self.modules:
+            modlist.append(module.__name__)
 
-def command_modload(self, arguments):
-    target, nickname, message = arguments
+        self.msgSend(target, nickname, ", ".join(modlist))
 
-    if len(message) == 1:
-        self.loadModule(message[0])
-    elif len(message) > 1:
-        for moduleName in message:
-            self.loadModule(moduleName)
-    else:
-        self.msgSend(target, nickname, "You have not specified a module to load.")
+    if subCommand == "load":
+        if len(arguments) == 1:
+            self.loadModule(arguments[0])
+        elif len(arguments) > 1:
+            for moduleName in arguments:
+                self.loadModule(moduleName)
+        else:
+            self.msgSend(target, nickname, "You have not specified a module to load.")
 
-def command_modunload(self, arguments):
-    target, nickname, message = arguments
+    if subCommand == "unload":
+        if len(arguments) == 1:
+            self.unloadModule(arguments[0])
+        elif len(arguments) > 1:
+            for moduleName in arguments:
+                self.unloadModule(moduleName)
+        else:
+            self.msgSend(target, nickname, "You have not specified a module to unload.")
 
-    if len(message) == 1:
-        self.unloadModule(message[0])
-    elif len(message) > 1:
-        for moduleName in message:
-            self.unloadModule(moduleName)
-    else:
-        self.msgSend(target, nickname, "You have not specified a module to unload.")
-
-def command_modenable(self, arguments):
-    target, nickname, message = arguments
-
-    for moduleName in message[1:]:
+    if subCommand == "enable":
         self.databaseCursor.execute("SELECT * FROM modules")
 
         for module in self.databaseCursor:
             moduleID, networkID, moduleName, moduleEnabled = module
 
-            if int(moduleEnabled) == 0:
-                tuple = (1, self.factory.networkID, moduleName)
+            if int(moduleEnabled) == 0 and moduleName == arguments[0]:
+                tuple = (1, self.factory.networkID, arguments[0])
                 query = '''UPDATE modules SET moduleEnabled=? WHERE networkID=? AND moduleName=?'''
                 self.databaseCursor.execute(query, tuple)
                 self.databaseConnection.commit()
 
-def command_moddisable(self, arguments):
-    target, nickname, message = arguments
-
-    for moduleName in message:
+    if subCommand == "disable":
         self.databaseCursor.execute("SELECT * FROM modules")
 
         for module in self.databaseCursor:
             moduleID, networkID, moduleName, moduleEnabled = module
 
-            if int(moduleEnabled) == 1:
-                tuple = (0, self.factory.networkID, moduleName)
+            if int(moduleEnabled) == 1 and moduleName == arguments[0]:
+                tuple = (0, self.factory.networkID, arguments[0])
                 query = '''UPDATE modules SET moduleEnabled=? WHERE networkID=? AND moduleName=?'''
                 self.databaseCursor.execute(query, tuple)
                 self.databaseConnection.commit()
