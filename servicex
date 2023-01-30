@@ -8,6 +8,7 @@ from os.path import isfile
 from importlib.util import spec_from_file_location, module_from_spec
 from shlex import split
 from tabulate import tabulate
+from inspect import stack, getmodule
 
 
 # Create a timestamp
@@ -68,15 +69,27 @@ class ServiceXProtocol(irc.IRCClient):
         self.channels = []
         self.timestamp = timestamp
         self.tableCreate = tableCreate
+        self.variables = ['date', 'time']
+        self.modules = []
 
-    # Used to parse "tags" (terms in strings surrounded in triangular
-    # brackets) and replaces tags with data
-    def tagParse(self, string):
-        if "<date>" in string:
-            string = string.replace("<date>", timestamp("date"))
+    def variable_date(self):
+        return self.timestamp("date")
 
-        if "<time>" in string:
-            string = string.replace("<time>", timestamp("time"))
+    def variable_time(self):
+        return self.timestamp("time")
+
+    # Used to parse variables and replace them with data
+    def variableParse(self, string):
+        for variableName in self.variables:
+            if "$" + variableName in string:
+                try:
+                    variableFunction = getattr(self, 'variable_%s' % variableName)
+                    variable = variableFunction()
+                except AttributeError:
+                    raise
+                    variable = " "
+
+                string = string.replace("$" + variableName, variable)
 
         return string
 
@@ -108,6 +121,11 @@ class ServiceXProtocol(irc.IRCClient):
 
     # Called upon connection made
     def connectionMade(self):
+        modules = ['utilities', 'channel', 'fun', 'test']
+
+        for module in modules:
+            self.loadModule(module)
+
         irc.IRCClient.connectionMade(self)
         log("info", "Successfully made connection with %s (%s:%s)." % (
             self.factory.networkName, self.factory.networkAddress, self.factory.networkPort))
@@ -210,7 +228,7 @@ class ServiceXProtocol(irc.IRCClient):
 
     # Used to send message to a user or in a channel
     def msgSend(self, msgSendTarget, msgSendNickname, msgSendMessage):
-        strings = msgSendMessage.split('\\n')
+        strings = str(msgSendMessage).split('\\n')
 
         if msgSendNickname is None:
             target = msgSendTarget
@@ -223,14 +241,32 @@ class ServiceXProtocol(irc.IRCClient):
                 string = string.replace("\\t", " " * tabs)
             self.msg(msgSendTarget, "%s: %s" % (target, string))
 
+    def callCommand(self, command, arguments):
+        function = None
+
+        for module in self.modules:
+            for moduleAttribute in dir(module):
+                if moduleAttribute == "command_" + command:
+                    function = getattr(module, "command_" + command)
+
+        if function is None:
+            return False
+        else:
+            function(self, arguments)
+
     # Used to call a module
-    def callModule(self, moduleName, fromTarget, fromNickname, fromMessage):
-        moduleSpec = spec_from_file_location(
-            moduleName, "modules/%s.py" %
-            moduleName)
-        module = module_from_spec(moduleSpec)
-        moduleSpec.loader.exec_module(module)
-        module.run(self, fromTarget, fromNickname, fromMessage)
+    def callModule(self, moduleName, moduleTuple):
+        for module in self.modules:
+            if module.__name__ == moduleName:
+                module.run(self, moduleTuple)
+
+    # Used to load a module
+    def loadModule(self, moduleName):
+        if moduleName not in self.modules:
+            moduleSpec = spec_from_file_location(moduleName, "modules/%s.py" % moduleName)
+            module = module_from_spec(moduleSpec)
+            moduleSpec.loader.exec_module(module)
+            self.modules.append(module)
 
     # Used upon receiving a PRIVMSG message from the server
     def privmsg(self, fromString, fromTarget, fromMessage):
@@ -245,17 +281,11 @@ class ServiceXProtocol(irc.IRCClient):
 
         fromMessage = split(fromMessage)[1:]
 
-        # The two if statements are for command interpretation and loading
-        # command_*.py modules
+        # The two if statements are for command interpretation and loading modules
         if fromTarget == self.nickname:
-            try:
-                self.callModule(
-                    "command_%s" %
-                    fromCommand,
-                    fromNickname,
-                    fromNickname,
-                    fromMessage)
-            except FileNotFoundError:
+            command = self.callCommand(fromCommand, (fromNickname, fromNickname, fromMessage))
+
+            if command is False:
                 log("info", "Command '%s' sent by '%s!%s@%s' via PM was not found." %
                     (fromCommand, fromNickname, fromIdent, fromHostname))
                 self.msgSend(fromNickname, fromNickname, "Command not found.")
@@ -266,15 +296,9 @@ class ServiceXProtocol(irc.IRCClient):
 
         if fromCommand.startswith(self.factory.commandTrigger):
             fromCommand = fromCommand.lstrip(self.factory.commandTrigger)
+            command = self.callCommand(fromCommand, (fromTarget, fromNickname, fromMessage))
 
-            try:
-                self.callModule(
-                    "command_%s" %
-                    fromCommand,
-                    fromTarget,
-                    fromNickname,
-                    fromMessage)
-            except FileNotFoundError:
+            if command is False:
                 log("info", "Command '%s' sent by '%s!%s@%s' via channel '%s' was not found." %
                     (fromCommand, fromNickname, fromIdent, fromHostname, fromTarget))
                 self.msgSend(fromTarget, fromNickname, "Command not found.")
