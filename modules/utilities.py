@@ -5,7 +5,7 @@ def command_echo(self, arguments):
         self.msgSend(target, nickname, self.variableParse(message[0]))
 
     elif len(message) > 1:
-        message = " ".join(message[1:])
+        message = " ".join(message)
         self.msgSend(target, nickname, self.variableParse(message))
 
     else:
