@@ -295,11 +295,22 @@ class ServiceXProtocol(irc.IRCClient):
             fromCommand = fromMessage.split()[0]
         except IndexError:
             return
-
-        fromMessage = split(fromMessage)[1:]
+        except:
+            raise
 
         # The two if statements are for command interpretation and loading modules
         if fromTarget == self.nickname:
+            try:
+                fromMessage = split(fromMessage)[1:]
+            except ValueError as e:
+                if str(e) == "No closing quotation":
+                    self.msgSend(fromNickname, fromNickname, "Quotation mark(s) missing.")
+                    return
+                else:
+                    raise
+            except:
+                raise
+
             command = self.callCommand(fromCommand, (fromNickname, fromNickname, fromMessage))
 
             if command is False:
@@ -312,6 +323,17 @@ class ServiceXProtocol(irc.IRCClient):
                 (fromCommand, fromNickname, fromIdent, fromHostname))
 
         if fromCommand.startswith(self.factory.commandTrigger):
+            try:
+                fromMessage = split(fromMessage)[1:]
+            except ValueError as e:
+                if str(e) == "No closing quotation":
+                    self.msgSend(fromTarget, fromNickname, "Quotation mark(s) missing.")
+                    return
+                else:
+                    raise
+            except:
+                raise
+
             fromCommand = fromCommand.lstrip(self.factory.commandTrigger)
             command = self.callCommand(fromCommand, (fromTarget, fromNickname, fromMessage))
 
