@@ -85,7 +85,9 @@ class ServiceXProtocol(irc.IRCClient):
         for variableName in self.variables:
             if "$" + variableName in string:
                 try:
-                    variableFunction = getattr(self, 'variable_%s' % variableName)
+                    variableFunction = getattr(
+                        self, 'variable_%s' %
+                        variableName)
                     variable = variableFunction()
                 except AttributeError:
                     raise
@@ -135,10 +137,13 @@ class ServiceXProtocol(irc.IRCClient):
             moduleID, networkID, moduleName, moduleEnabled = module
             if networkID == self.factory.networkID and int(moduleEnabled) == 1:
                 try:
-                    log("info", "Module '%s' is enabled for this IRC network, attempting to load." % moduleName)
+                    log(
+                        "info",
+                        "Module '%s' is enabled for this IRC network, attempting to load." %
+                        moduleName)
                     self.loadModule(moduleName)
                     log("info", "Module '%s' loaded successfully." % moduleName)
-                except:
+                except BaseException:
                     raise
 
     # Called upon connection lost
@@ -280,7 +285,9 @@ class ServiceXProtocol(irc.IRCClient):
     # Used to load a module
     def loadModule(self, moduleName):
         if moduleName not in self.modules:
-            moduleSpec = spec_from_file_location(moduleName, "modules/%s.py" % moduleName)
+            moduleSpec = spec_from_file_location(
+                moduleName, "modules/%s.py" %
+                moduleName)
             module = module_from_spec(moduleSpec)
             moduleSpec.loader.exec_module(module)
             self.modules.append(module)
@@ -295,23 +302,31 @@ class ServiceXProtocol(irc.IRCClient):
             fromCommand = fromMessage.split()[0]
         except IndexError:
             return
-        except:
+        except BaseException:
             raise
 
-        # The two if statements are for command interpretation and loading modules
+        # If statement entered if received message in PM
         if fromTarget == self.nickname:
+            # Error checking of the command input starts here
             try:
                 fromMessage = split(fromMessage)[1:]
             except ValueError as e:
+                # Any command or parameter that isn't started or finished off
+                # with a quotation mark will enter this if statement
                 if str(e) == "No closing quotation":
-                    self.msgSend(fromNickname, fromNickname, "Quotation mark(s) missing.")
+                    # User gets informed of missing quotation mark somewhere
+                    self.msgSend(
+                        fromNickname,
+                        fromNickname,
+                        "Quotation mark(s) missing.")
                     return
                 else:
                     raise
-            except:
+            except BaseException:
                 raise
 
-            command = self.callCommand(fromCommand, (fromNickname, fromNickname, fromMessage))
+            command = self.callCommand(
+                fromCommand, (fromNickname, fromNickname, fromMessage))
 
             if command is False:
                 log("info", "Command '%s' sent by '%s!%s@%s' via PM was not found." %
@@ -322,20 +337,29 @@ class ServiceXProtocol(irc.IRCClient):
             log("info", "Command '%s' sent by '%s!%s@%s' via PM was found." %
                 (fromCommand, fromNickname, fromIdent, fromHostname))
 
+        # If statement entered if message starts with the command trigger
         if fromCommand.startswith(self.factory.commandTrigger):
+            # Error checking of the command input starts here
             try:
                 fromMessage = split(fromMessage)[1:]
             except ValueError as e:
+                # Any command or parameter that isn't started or finished off
+                # with a quotation mark will enter this if statement
                 if str(e) == "No closing quotation":
-                    self.msgSend(fromTarget, fromNickname, "Quotation mark(s) missing.")
+                    # User gets informed of missing quotation mark somewhere
+                    self.msgSend(
+                        fromTarget,
+                        fromNickname,
+                        "Quotation mark(s) missing.")
                     return
                 else:
                     raise
-            except:
+            except BaseException:
                 raise
 
             fromCommand = fromCommand.lstrip(self.factory.commandTrigger)
-            command = self.callCommand(fromCommand, (fromTarget, fromNickname, fromMessage))
+            command = self.callCommand(
+                fromCommand, (fromTarget, fromNickname, fromMessage))
 
             if command is False:
                 log("info", "Command '%s' sent by '%s!%s@%s' via channel '%s' was not found." %
