@@ -1,4 +1,0 @@
-#!/usr/bin/env python3
-
-modules = input("Which modules would you like me to load for this IRC network (Must be a space seperated list)? ")
-print(modules.split())
