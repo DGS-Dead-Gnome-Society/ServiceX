@@ -49,3 +49,33 @@ def command_modunload(self, arguments):
             self.unloadModule(moduleName)
     else:
         self.msgSend(target, nickname, "You have not specified a module to unload.")
+
+def command_modenable(self, arguments):
+    target, nickname, message = arguments
+
+    for moduleName in message[1:]:
+        self.databaseCursor.execute("SELECT * FROM modules")
+
+        for module in self.databaseCursor:
+            moduleID, networkID, moduleName, moduleEnabled = module
+
+            if int(moduleEnabled) == 0:
+                tuple = (1, self.factory.networkID, moduleName)
+                query = '''UPDATE modules SET moduleEnabled=? WHERE networkID=? AND moduleName=?'''
+                self.databaseCursor.execute(query, tuple)
+                self.databaseConnection.commit()
+
+def command_moddisable(self, arguments):
+    target, nickname, message = arguments
+
+    for moduleName in message:
+        self.databaseCursor.execute("SELECT * FROM modules")
+
+        for module in self.databaseCursor:
+            moduleID, networkID, moduleName, moduleEnabled = module
+
+            if int(moduleEnabled) == 1:
+                tuple = (0, self.factory.networkID, moduleName)
+                query = '''UPDATE modules SET moduleEnabled=? WHERE networkID=? AND moduleName=?'''
+                self.databaseCursor.execute(query, tuple)
+                self.databaseConnection.commit()
