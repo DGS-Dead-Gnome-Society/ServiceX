@@ -260,6 +260,12 @@ class ServiceXProtocol(irc.IRCClient):
             if module.__name__ == moduleName:
                 module.run(self, moduleTuple)
 
+    # Used to unload a module
+    def unloadModule(self, moduleName):
+        for module in self.modules:
+            if module.__name__ == moduleName:
+                self.modules.remove(module)
+
     # Used to load a module
     def loadModule(self, moduleName):
         if moduleName not in self.modules:
