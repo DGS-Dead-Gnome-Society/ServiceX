@@ -36,14 +36,14 @@ def log(type, entry):
 
 # Used to connect to the database
 def databaseConnect(databaseFile):
-    conn = None
+    databaseConnection = None
     try:
-        conn = connect(databaseFile)
-        return conn
+        databaseConnection = connect(databaseFile)
+        return databaseConnection
     except Error as e:
         log('error', e)
 
-    return conn
+    return databaseConnection
 
 
 # Used to create a table in the database
@@ -71,6 +71,8 @@ class ServiceXProtocol(irc.IRCClient):
         self.tableCreate = tableCreate
         self.variables = ['date', 'time']
         self.modules = []
+        self.databaseCursor = databaseCursor
+        self.databaseConnection = databaseConnection
 
     def variable_date(self):
         return self.timestamp("date")
@@ -103,6 +105,7 @@ class ServiceXProtocol(irc.IRCClient):
 
         rowsModified = []
 
+        # Give each row apart from the first row a number starting from zero
         for row in rows:
             row = [count] + row
             count += 1
@@ -121,14 +124,22 @@ class ServiceXProtocol(irc.IRCClient):
 
     # Called upon connection made
     def connectionMade(self):
-        modules = ['utilities', 'channel', 'fun', 'test']
-
-        for module in modules:
-            self.loadModule(module)
-
         irc.IRCClient.connectionMade(self)
         log("info", "Successfully made connection with %s (%s:%s)." % (
             self.factory.networkName, self.factory.networkAddress, self.factory.networkPort))
+
+        # Checks the database for enabled modules and loads them
+        databaseCursor.execute("SELECT * FROM modules")
+
+        for module in databaseCursor:
+            moduleID, networkID, moduleName, moduleEnabled = module
+            if networkID == self.factory.networkID and int(moduleEnabled) == 1:
+                try:
+                    log("info", "Module '%s' is enabled for this IRC network, attempting to load." % moduleName)
+                    self.loadModule(moduleName)
+                    log("info", "Module '%s' loaded successfully." % moduleName)
+                except:
+                    raise
 
     # Called upon connection lost
     def connectionLost(self, reason):
