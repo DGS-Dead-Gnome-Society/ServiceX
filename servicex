@@ -9,7 +9,7 @@ from importlib.util import spec_from_file_location, module_from_spec
 from shlex import split
 from tabulate import tabulate
 from inspect import stack, getmodule
-
+from re import findall, match
 
 # Create a timestamp
 def timestamp(dt=None):
@@ -69,33 +69,24 @@ class ServiceXProtocol(irc.IRCClient):
         self.channels = []
         self.timestamp = timestamp
         self.tableCreate = tableCreate
-        self.variables = ['date', 'time']
         self.modules = []
+        self.commands = []
+        self.variables = []
         self.databaseCursor = databaseCursor
         self.databaseConnection = databaseConnection
 
-    def variable_date(self):
-        return self.timestamp("date")
-
-    def variable_time(self):
-        return self.timestamp("time")
-
     # Used to parse variables and replace them with data
-    def variableParse(self, string):
-        for variableName in self.variables:
-            if "$" + variableName in string:
-                try:
-                    variableFunction = getattr(
-                        self, 'variable_%s' %
-                        variableName)
-                    variable = variableFunction()
-                except AttributeError:
-                    raise
-                    variable = " "
+    def variableParse(self, target, nickname, message):
+        for item in self.variables:
+            variableName = item[0]
+            moduleName = item[1]
 
-                string = string.replace("$" + variableName, variable)
+            if "$" + variableName in message:
+                variableFunction = getattr(moduleName, 'variable_%s' % variableName)
+                variable = variableFunction(self)
+                message = message.replace("$" + variableName, variable)
 
-        return string
+        return message
 
     # Construct a dataframe to be sent for passing to self.msgSend()
     def frameData(self, headers, rows):
@@ -260,10 +251,9 @@ class ServiceXProtocol(irc.IRCClient):
     def callCommand(self, command, arguments):
         function = None
 
-        for module in self.modules:
-            for moduleAttribute in dir(module):
-                if moduleAttribute == "command_" + command:
-                    function = getattr(module, "command_" + command)
+        for item in self.commands:
+            if item[0] == command:
+                function = getattr(item[1], "command_" + command)
 
         if function is None:
             return False
@@ -288,9 +278,19 @@ class ServiceXProtocol(irc.IRCClient):
             moduleSpec = spec_from_file_location(
                 moduleName, "modules/%s.py" %
                 moduleName)
+
             module = module_from_spec(moduleSpec)
             moduleSpec.loader.exec_module(module)
             self.modules.append(module)
+
+            for moduleAttribute in dir(module):
+                if moduleAttribute.startswith("command_"):
+                    moduleAttribute = moduleAttribute.replace("command_", "")
+                    self.commands.append([moduleAttribute, module])
+
+                if moduleAttribute.startswith("variable_"):
+                    moduleAttribute = moduleAttribute.replace("variable_", "")
+                    self.variables.append([moduleAttribute, module])
 
     # Used upon receiving a PRIVMSG message from the server
     def privmsg(self, fromString, fromTarget, fromMessage):
