@@ -74,6 +74,7 @@ class ServiceXProtocol(irc.IRCClient):
         self.variables = []
         self.databaseCursor = databaseCursor
         self.databaseConnection = databaseConnection
+        self.split = split
 
     # Used to parse variables and replace them with data
     def variableParse(self, target, nickname, message):
@@ -88,32 +89,20 @@ class ServiceXProtocol(irc.IRCClient):
 
         return message
 
-    # Construct a dataframe to be sent for passing to self.msgSend()
-    def frameData(self, headers, rows):
+    # Place lists of data into a grid for passing to self.msgSend()
+    def dataGrid(self, rows):
         dataframe = ""
-        count = 0
 
-        # This is an En Quad character and not a standard space
-        headers = [' '] + headers
-
-        rowsModified = []
-
-        # Give each row apart from the first row a number starting from zero
-        for row in rows:
-            row = [count] + row
-            count += 1
-            rowsModified.append(row)
-
-        rows = tabulate(
-            rowsModified,
-            headers=headers,
-            tablefmt="plain").split('\n')
+        rows = tabulate(rows, tablefmt="plain").split('\n')
 
         for row in rows:
             row = row.lstrip("  ") + "\\n"
             dataframe += row
 
         return dataframe.rstrip("\\n")
+
+    def chunkify(self, lst, n):
+        return [lst[i::n] for i in range(n)]
 
     # Called upon connection made
     def connectionMade(self):
@@ -292,6 +281,30 @@ class ServiceXProtocol(irc.IRCClient):
                     moduleAttribute = moduleAttribute.replace("variable_", "")
                     self.variables.append([moduleAttribute, module])
 
+    def enableModule(self, moduleName):
+        self.databaseCursor.execute("SELECT * FROM modules")
+
+        for module in self.databaseCursor:
+            moduleID, networkID, tableModuleName, moduleEnabled = module
+
+            if int(moduleEnabled) == 0 and tableModuleName == moduleName:
+                tuple = (1, self.factory.networkID, moduleName)
+                query = '''UPDATE modules SET moduleEnabled=? WHERE networkID=? AND moduleName=?'''
+                self.databaseCursor.execute(query, tuple)
+                self.databaseConnection.commit()
+
+    def disableModule(self, moduleName):
+        self.databaseCursor.execute("SELECT * FROM modules")
+
+        for module in self.databaseCursor:
+            moduleID, networkID, tableModuleName, moduleEnabled = module
+
+            if int(moduleEnabled) == 1 and tableModuleName == moduleName:
+                tuple = (0, self.factory.networkID, moduleName)
+                query = '''UPDATE modules SET moduleEnabled=? WHERE networkID=? AND moduleName=?'''
+                self.databaseCursor.execute(query, tuple)
+                self.databaseConnection.commit()
+
     # Used upon receiving a PRIVMSG message from the server
     def privmsg(self, fromString, fromTarget, fromMessage):
         fromNickname, fromString = fromString.split('!')
@@ -309,7 +322,7 @@ class ServiceXProtocol(irc.IRCClient):
         if fromTarget == self.nickname:
             # Error checking of the command input starts here
             try:
-                fromMessage = split(fromMessage)[1:]
+                fromMessage = self.split(fromMessage)[1:]
             except ValueError as e:
                 # Any command or parameter that isn't started or finished off
                 # with a quotation mark will enter this if statement
@@ -341,7 +354,7 @@ class ServiceXProtocol(irc.IRCClient):
         if fromCommand.startswith(self.factory.commandTrigger):
             # Error checking of the command input starts here
             try:
-                fromMessage = split(fromMessage)[1:]
+                fromMessage = self.split(fromMessage)[1:]
             except ValueError as e:
                 # Any command or parameter that isn't started or finished off
                 # with a quotation mark will enter this if statement
