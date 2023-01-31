@@ -276,7 +276,7 @@ class ServiceXProtocol(irc.IRCClient):
     def loadModule(self, moduleName):
         if moduleName not in self.modules:
             moduleSpec = spec_from_file_location(
-                moduleName, "modules/%s.py" %
+                moduleName, "modules/%s/init.py" %
                 moduleName)
 
             module = module_from_spec(moduleSpec)
@@ -378,11 +378,6 @@ class ServiceXProtocol(irc.IRCClient):
 
             if "isn't registered." in msg:
                 log("info", "Failed to identify with NickServ.")
-
-    # Used upon nicname collision
-    def alterCollidedNick(self, nickname):
-        return nickname + '_'
-
 
 class ServiceXFactory(protocol.ClientFactory):
     def __init__(

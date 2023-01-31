@@ -25,6 +25,10 @@ def command_echo(self, arguments):
     else:
         self.msgSend(target, nickname, "Not enough parameters.")
 
+def command_nick(self, arguments):
+    target, nickname, message = arguments
+    self.setNick(message[0])
+
 def command_module(self, arguments):
     target, nickname, message = arguments
     subCommand = message[0]
