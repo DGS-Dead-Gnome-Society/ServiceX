@@ -1,8 +1,24 @@
+import platform
+
 def variable_date(self):
     return self.timestamp("date")
 
 def variable_time(self):
     return self.timestamp("time")
+
+def command_help(self, arguments):
+    target, nickname, message = arguments
+
+def command_commands(self, arguments):
+    target, nickname, message = arguments
+    commands = []
+
+    self.msgSend(target, nickname, "The available commands are:")
+
+    for command in self.commands:
+        commands.append(command[0])
+
+    self.msgSend(target, nickname, self.dataGrid(self.chunkifyList(commands, 2)))
 
 def command_date(self, arguments):
     target, nickname, message = arguments
@@ -11,6 +27,10 @@ def command_date(self, arguments):
 def command_time(self, arguments):
     target, nickname, message = arguments
     self.msgSend(target, nickname, self.timestamp("time"))
+
+def command_uname(self, arguments):
+    target, nickname, message = arguments
+    self.msgSend(target, nickname, "%s %s %s %s %s GNU/Linux" % (platform.system(), platform.node(), platform.release(), platform.version(), platform.machine()))
 
 def command_echo(self, arguments):
     target, nickname, message = arguments

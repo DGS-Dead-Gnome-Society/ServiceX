@@ -101,8 +101,8 @@ class ServiceXProtocol(irc.IRCClient):
 
         return dataframe.rstrip("\\n")
 
-    def chunkify(self, lst, n):
-        return [lst[i::n] for i in range(n)]
+    def chunkifyList(self, list, chunkCount):
+        return [list[i::chunkCount] for i in range(chunkCount)]
 
     # Called upon connection made
     def connectionMade(self):
