@@ -261,6 +261,15 @@ class ServiceXProtocol(irc.IRCClient):
             if module.__name__ == moduleName:
                 self.modules.remove(module)
 
+                for moduleAttribute in dir(module):
+                    if moduleAttribute.startswith("command_"):
+                        moduleAttribute = moduleAttribute.replace("command_", "")
+                        self.commands.remove([moduleAttribute, module])
+
+                    if moduleAttribute.startswith("variable_"):
+                        moduleAttribute = moduleAttribute.replace("variable_", "")
+                        self.variables.remove([moduleAttribute, module])
+
     # Used to load a module
     def loadModule(self, moduleName):
         if moduleName not in self.modules:

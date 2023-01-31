@@ -12,12 +12,34 @@ def command_help(self, arguments):
 def command_commands(self, arguments):
     target, nickname, message = arguments
     commands = []
-
-    self.msgSend(target, nickname, "The available commands are:")
+    modules = []
 
     for command in self.commands:
         commands.append(command[0])
 
+        if command[1] in modules:
+            continue
+        else:
+            modules.append(command[1])
+
+    commandCount = len(commands)
+    moduleCount = len(modules)
+
+    if commandCount == 1:
+        firstString = "is %s command" % commandCount
+    elif commandCount > 1:
+        firstString = "are %s commands" % commandCount
+    else:
+        firstString = "are no commands"
+
+    if moduleCount == 1:
+        secondString = "%s from a single module" % firstString
+    elif moduleCount > 1:
+        secondString = "%s from %s modules" % (firstString, moduleCount)
+    else:
+        secondString = "%s" % firstString
+
+    self.msgSend(target, nickname, "There %s available, these commands are:" % secondString)
     self.msgSend(target, nickname, self.dataGrid(self.chunkifyList(commands, 2)))
 
 def command_date(self, arguments):
