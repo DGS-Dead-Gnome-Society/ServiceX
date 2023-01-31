@@ -61,25 +61,19 @@ def command_module(self, arguments):
             self.msgSend(target, nickname, "You have not specified a module to unload.")
 
     if subCommand == "enable":
-        self.databaseCursor.execute("SELECT * FROM modules")
-
-        for module in self.databaseCursor:
-            moduleID, networkID, moduleName, moduleEnabled = module
-
-            if int(moduleEnabled) == 0 and moduleName == arguments[0]:
-                tuple = (1, self.factory.networkID, arguments[0])
-                query = '''UPDATE modules SET moduleEnabled=? WHERE networkID=? AND moduleName=?'''
-                self.databaseCursor.execute(query, tuple)
-                self.databaseConnection.commit()
+        if len(arguments) == 1:
+            self.enableModule(arguments[0])
+        elif len(arguments) > 1:
+            for moduleName in arguments:
+                self.enableModule(moduleName)
+        else:
+            self.msgSend(target, nickname, "You have not specified a module to enable.")
 
     if subCommand == "disable":
-        self.databaseCursor.execute("SELECT * FROM modules")
-
-        for module in self.databaseCursor:
-            moduleID, networkID, moduleName, moduleEnabled = module
-
-            if int(moduleEnabled) == 1 and moduleName == arguments[0]:
-                tuple = (0, self.factory.networkID, arguments[0])
-                query = '''UPDATE modules SET moduleEnabled=? WHERE networkID=? AND moduleName=?'''
-                self.databaseCursor.execute(query, tuple)
-                self.databaseConnection.commit()
+        if len(arguments) == 1:
+            self.disableModule(arguments[0])
+        elif len(arguments) > 1:
+            for moduleName in arguments:
+                self.disableModule(moduleName)
+        else:
+            self.msgSend(target, nickname, "You have not specified a module to disable.")
