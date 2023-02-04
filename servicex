@@ -1,35 +1,40 @@
 #!/usr/bin/env python3
 
 from twisted.words.protocols import irc
-from twisted.internet import reactor, protocol
+from twisted.internet import reactor, protocol, ssl
 from datetime import datetime
 from sqlite3 import connect, Error
 from os.path import isfile
 from importlib.util import spec_from_file_location, module_from_spec
 from shlex import split
 from tabulate import tabulate
-from inspect import stack, getmodule
-from re import findall, match
+from pytz import timezone
 
 # Create a timestamp
-def timestamp(dt=None):
-    now = datetime.now()
+def timestamp(tz=None, **kwargs):
+    if tz is None:
+        now = datetime.now()
+    else:
+        now = datetime.now(timezone(tz))
 
-    if dt is None:
-        return now.strftime("%Y-%m-%d_%H:%M:%S")
+    if "preset" in kwargs.keys():
+        if kwargs['preset'] == "datetime":
+            return now.strftime("%Y-%m-%d_%H:%M:%S")
 
-    if dt == "date":
-        return now.strftime("%Y-%m-%d")
+        if kwargs['preset'] == "date":
+            return now.strftime("%Y-%m-%d")
 
-    if dt == "time":
-        return now.strftime("%H:%M:%S")
+        if kwargs['preset'] == "time":
+            return now.strftime("%H:%M:%S")
 
+    if "format" in kwargs.keys():
+        return now.strftime(kwargs['format'])
 
 # Message logger (stdout and file)
 def log(type, entry):
     if type in ('info', 'warning', 'error'):
-        str = "%s:%s: %s" % (timestamp(), type, entry)
-        with open("logs/%s.log" % timestamp("date"), "a") as logFile:
+        str = "%s:%s: %s" % (timestamp(preset="datetime"), type, entry)
+        with open("logs/%s.log" % timestamp(preset="date"), "a") as logFile:
             logFile.write("%s\n" % str)
             print(str)
 
@@ -64,6 +69,7 @@ class ServiceXProtocol(irc.IRCClient):
     def __init__(self):
         super().__init__()
         self.nickname = nickname
+        self.nicknames = nicknames
         self.username = ident
         self.realname = realname
         self.channels = []
@@ -89,6 +95,25 @@ class ServiceXProtocol(irc.IRCClient):
 
         return message
 
+    def alterCollidedNick(self, oldNickname):
+        lastNicknameIndex = len(self.nicknames) - 1
+
+        try:
+            oldNicknameIndex = self.nicknames.index(oldNickname)
+
+            if oldNicknameIndex == lastNicknameIndex:
+                newNickname = self.nicknames[0]
+
+            else:
+                newNickname = self.nicknames[oldNicknameIndex + 1]
+
+        except ValueError:
+            newNickname = self.nicknames[0]
+
+        log("info", "Nickname '%s' is taken, attempting nickname '%s'." % (oldNickname, newNickname))
+
+        return newNickname
+
     # Place lists of data into a grid for passing to self.msgSend()
     def dataGrid(self, rows):
         dataframe = ""
@@ -103,6 +128,14 @@ class ServiceXProtocol(irc.IRCClient):
 
     def chunkifyList(self, list, chunkCount):
         return [list[i::chunkCount] for i in range(chunkCount)]
+
+    def changeNick(self, nickname):
+        self.setNick(nickname)
+
+#        tuple = (nickname, self.factory.networkID)
+#        query = '''UPDATE ircNetworks SET nickname=? WHERE ID=?'''
+#        self.databaseCursor.execute(query, tuple)
+#        self.databaseConnection.commit()
 
     # Called upon connection made
     def connectionMade(self):
@@ -122,7 +155,6 @@ class ServiceXProtocol(irc.IRCClient):
                         "Module '%s' is enabled for this IRC network, attempting to load." %
                         moduleName)
                     self.loadModule(moduleName)
-                    log("info", "Module '%s' loaded successfully." % moduleName)
                 except BaseException:
                     raise
 
@@ -223,37 +255,45 @@ class ServiceXProtocol(irc.IRCClient):
             log("info", "Not in channel '%s'." % channelName)
 
     # Used to send message to a user or in a channel
-    def msgSend(self, msgSendTarget, msgSendNickname, msgSendMessage):
-        strings = str(msgSendMessage).split('\\n')
+    def msgSend(self, msgSendTarget, msgSendNickname, msgSendMessage, **kwargs):
+        escapes = False
 
         if msgSendNickname is None:
             target = msgSendTarget
         else:
             target = msgSendNickname
 
-        for string in strings:
-            if "\\t" in string:
-                tabs = 4
-                string = string.replace("\\t", " " * tabs)
-            self.msg(msgSendTarget, "%s: %s" % (target, string))
+        if "escapes" in kwargs.keys():
+            if bool(kwargs['escapes']) is True:
+                escapes = True
 
+        if "newline" in kwargs.keys():
+            if bool(kwargs['newline']) is True:
+                msgSendMessage = msgSendMessage.rstrip('\\n')
+
+        if escapes is True:
+            strings = str(msgSendMessage).split('\\n')
+
+            for string in strings:
+                if "\\t" in string:
+                    tabs = 4
+                    string = string.replace("\\t", " " * tabs)
+
+                self.msg(msgSendTarget, "%s: %s" % (target, string))
+        else:
+            self.msg(msgSendTarget, "%s: %s" % (target, msgSendMessage))
+
+    # Used to call a command
     def callCommand(self, command, arguments):
         function = None
 
         for item in self.commands:
             if item[0] == command:
                 function = getattr(item[1], "command_" + command)
-
         if function is None:
             return False
         else:
             function(self, arguments)
-
-    # Used to call a module
-    def callModule(self, moduleName, moduleTuple):
-        for module in self.modules:
-            if module.__name__ == moduleName:
-                module.run(self, moduleTuple)
 
     # Used to unload a module
     def unloadModule(self, moduleName):
@@ -273,13 +313,18 @@ class ServiceXProtocol(irc.IRCClient):
     # Used to load a module
     def loadModule(self, moduleName):
         if moduleName not in self.modules:
-            moduleSpec = spec_from_file_location(
-                moduleName, "modules/%s/init.py" %
-                moduleName)
-
+            initPath = "modules/%s/init.py" % moduleName
+            moduleSpec = spec_from_file_location(moduleName, initPath)
             module = module_from_spec(moduleSpec)
-            moduleSpec.loader.exec_module(module)
-            self.modules.append(module)
+
+            try:
+                moduleSpec.loader.exec_module(module)
+                self.modules.append(module)
+                log("info", "Module '%s' loaded successfully." % moduleName)
+
+            except FileNotFoundError:
+                log("error", "Module '%s' failed to load, file not found: %s" % (moduleName, initPath))
+                return
 
             for moduleAttribute in dir(module):
                 if moduleAttribute.startswith("command_"):
@@ -290,6 +335,7 @@ class ServiceXProtocol(irc.IRCClient):
                     moduleAttribute = moduleAttribute.replace("variable_", "")
                     self.variables.append([moduleAttribute, module])
 
+    # Used to enable a module
     def enableModule(self, moduleName):
         self.databaseCursor.execute("SELECT * FROM modules")
 
@@ -302,6 +348,7 @@ class ServiceXProtocol(irc.IRCClient):
                 self.databaseCursor.execute(query, tuple)
                 self.databaseConnection.commit()
 
+    # Used to enable a module
     def disableModule(self, moduleName):
         self.databaseCursor.execute("SELECT * FROM modules")
 
@@ -408,7 +455,9 @@ class ServiceXFactory(protocol.ClientFactory):
             networkName,
             networkAddress,
             networkPort,
+            networkSSL,
             nickname,
+            nicknames,
             ident,
             realname,
             nickservUsername,
@@ -420,7 +469,9 @@ class ServiceXFactory(protocol.ClientFactory):
         self.networkName = networkName
         self.networkAddress = networkAddress
         self.networkPort = networkPort
+        self.networkSSL = networkSSL
         self.nickname = nickname
+        self.nicknames = nicknames
         self.ident = ident
         self.realname = realname
         self.nickservUsername = nickservUsername
@@ -462,14 +513,19 @@ if __name__ == '__main__':
 
     # Create a factory and reactor per network in the ircNetworks table
     for network in networks:
-        networkID, networkName, networkAddress, networkPort, nickname, ident, realname, nickservUsername, nickservPassword, operUsername, operPassword, commandTrigger = network
+        networkID, networkName, networkAddress, networkPort, networkSSL, nicknames, ident, realname, nickservUsername, nickservPassword, operUsername, operPassword, commandTrigger = network
+
+        nickname = nicknames.split(', ')[0]
+        nicknames = nicknames.split(', ')
 
         factory = ServiceXFactory(
             networkID,
             networkName,
             networkAddress,
             networkPort,
+            networkSSL,
             nickname,
+            nicknames,
             ident,
             realname,
             nickservUsername,
@@ -478,9 +534,10 @@ if __name__ == '__main__':
             operPassword,
             commandTrigger)
 
-        reactor.connectTCP(
-            networkAddress,
-            networkPort,
-            factory)
+        if networkSSL == "no":
+            reactor.connectTCP(networkAddress, networkPort, factory)
+            reactor.run()
 
-    reactor.run()
+        if networkSSL == "yes":
+            reactor.connectSSL(networkAddress, networkPort, factory, ssl.ClientContextFactory())
+            reactor.run()

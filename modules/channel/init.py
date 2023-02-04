@@ -1,6 +1,4 @@
-def command_chanjoin(self, arguments):
-    target, nickname, message = arguments
-
+def command_chanjoin(self, target, nickname, message):
     try:
         channelName = message[0]
     except IndexError:
@@ -8,9 +6,7 @@ def command_chanjoin(self, arguments):
 
     self.chanJoin(channelName, target)
 
-def command_chanpart(self, arguments):
-    target, nickname, message = arguments
-
+def command_chanpart(self, target, nickname, message):
     try:
         channelName = message[0]
     except IndexError:
@@ -18,9 +14,7 @@ def command_chanpart(self, arguments):
 
     self.chanPart(channelName, target)
 
-def command_chancycle(self, arguments):
-    target, nickname, message = arguments
-
+def command_chancycle(self, target, nickname, message):
     try:
         channelName = message[0]
     except IndexError:
@@ -29,9 +23,7 @@ def command_chancycle(self, arguments):
     self.chanPart(channelName, target, False)
     self.chanJoin(channelName, target, False)
 
-def command_chanlist(self, arguments):
-    target, nickname, message = arguments
-
+def command_chanlist(self, target, nickname, message):
     if len(message) == 0:
         self.msgSend(target, nickname, ", ".join(self.channels))
 

@@ -35,7 +35,8 @@ def main():
                                     networkName text NOT NULL,
                                     networkAddress text NOT NULL,
                                     networkPort integer NOT NULL,
-                                    nickname text NOT NULL,
+                                    networkSSL text NOT NULL,
+                                    nicknames text NOT NULL,
                                     ident text NOT NULL,
                                     realname text NOT NULL,
                                     nickservUsername text NOT NULL,
@@ -63,28 +64,29 @@ def main():
         tableCreate(databaseConnection, modulesTable)
         tableCreate(databaseConnection, channelsTable)
 
-        nickname = input("What would you like my nickname to be? ")
-        ident = input("What would you like my ident to be? ")
-        realname = input("What would you like my real name to be? ")
-        networkName = input(
-            "What is the name of the IRC network you would like me to connect to? ")
-        networkAddress = input(
-            "What is the address of the IRC network you would like me to connect to? ")
-        networkPort = input(
-            "What is the port of the IRC network you would like me to connect to? ")
-        networkModulesList = input("Which modules would you like me to have enabled for this IRC network (Must be a space seperated list)? ")
-        nickservUsername = input("What is my NickServ username? ")
-        nickservPassword = input("What is my NickServ password? ")
-        operUsername = input("What is my oper username? ")
-        operPassword = input("What is my oper password? ")
-        channelName = input("Which IRC channel should I join? ")
-        commandTrigger = input("Which is my command trigger? ")
+        nicknames = str(input("What would you like my nickname(s) to be (Must be a space seperated list, default answer is 'YukiChan YukiChan2 YukiChan3')? ") or "YukiChan YukiChan2 YukiChan3")
+        ident = str(input("What would you like my ident to be (Default answer is 'yuki')? ") or "yuki")
+        realname = str(input("What would you like my real name to be (Default answer is 'Yuki Chan')? ") or "Yuki Chan")
+        networkName = str(input("What is the name of the IRC network you would like me to connect to (Default answer is 'Libera')? ") or "Libera")
+        networkAddress = str(input("What is the address of the IRC network you would like me to connect to (Default answer is 'irc.libera.chat')? ") or "irc.libera.chat")
+        networkPort = int(input("What is the port of the IRC network you would like me to connect to (Default answer is '6697')? ") or 6697)
+        networkSSL = str(input("Do you want me to use SSL when connecting to this IRC network (Valid answers are 'yes' and 'no', default answer is 'yes')? ") or "yes")
+        networkModulesList = str(input("Which modules would you like me to have enabled for this IRC network (Must be a space seperated list, default answer is 'utilities, channel fun test')? ") or "utilities channel fun test")
+        nickservUsername = str(input("What is my NickServ username (Default answer is 'YukiChan')? ") or "YukiChan")
+        nickservPassword = str(input("What is my NickServ password? ") or "blah")
+        operUsername = str(input("What is my oper username (Default answer is 'YukiChan')? ") or "YukiChan")
+        operPassword = str(input("What is my oper password? ") or "blah")
+        channelName = str(input("Which IRC channel should I join (Default answer is '#bots')? ") or "#bots")
+        commandTrigger = str(input("Which is my command trigger (Default answer is '!')? ") or "!")
+
+        nicknames = ", ".join(nicknames.split())
 
         tuple = (
             networkName,
             networkAddress,
             networkPort,
-            nickname,
+            networkSSL,
+            nicknames,
             ident,
             realname,
             nickservUsername,
@@ -93,7 +95,7 @@ def main():
             operPassword,
             commandTrigger)
 
-        query = """INSERT INTO ircNetworks (networkName, networkAddress, networkPort, nickname, ident, realname, nickservUsername, nickservPassword, operUsername, operPassword, commandTrigger) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"""
+        query = """INSERT INTO ircNetworks (networkName, networkAddress, networkPort, networkSSL, nicknames, ident, realname, nickservUsername, nickservPassword, operUsername, operPassword, commandTrigger) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"""
         databaseCursor.execute(query, tuple)
         databaseConnection.commit()
 
