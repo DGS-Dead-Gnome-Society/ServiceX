@@ -1,6 +1,6 @@
 from bs4 import BeautifulSoup
 from requests import get
-import random
+import random, getopt
 
 def command_why(self, arguments):
     target, nickname, message = arguments
@@ -32,15 +32,20 @@ def command_digiclock(self, arguments):
 
 def command_dice(self, arguments):
     target, nickname, message = arguments
-    try:
-        diceCount = int(message[0])
-    except IndexError:
-        diceCount = 1
+    diceCount = 1
+    diceSides = 6
 
     try:
-        diceSides = int(message[1])
-    except IndexError:
-        diceSides = 6
+        opts, args = getopt.getopt(message, "c:s:", ["count=", "sides="])
+    except getopt.GetoptError as e:
+        print(e)
+
+    for opt, arg in opts:
+        if opt in ("-c", "--count"):
+            diceCount = int(arg)
+
+        if opt in ("-s", "--sides"):
+            diceSides = int(arg)
 
     diceResults = []
 
