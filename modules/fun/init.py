@@ -11,6 +11,17 @@ def command_why(self, arguments):
 
 def command_digiclock(self, arguments):
     target, nickname, message = arguments
+    timezoneArg = None
+
+    try:
+        opts, args = getopt.getopt(message, "t:", ["timezone="])
+    except getopt.GetoptError as e:
+        print(e)
+
+    for opt, arg in opts:
+        if opt in ("-t", "--timezone"):
+            timezoneArg = arg
+
     numRepr = {
         '0': ('██████', '██  ██', '██  ██', '██  ██', '██████'),
         '1': ('    ██', '    ██', '    ██', '    ██', '    ██'),
@@ -25,7 +36,7 @@ def command_digiclock(self, arguments):
         ':': ('  ', '██', '  ', '██', '  '),
     }
 
-    digits = [numRepr[digit] for digit in self.timestamp(preset='time')]
+    digits = [numRepr[digit] for digit in self.timestamp(timezoneArg, preset='time')]
     for i in range(5):
         data = " ".join(segment[i] for segment in digits)
         self.msgSend(target, nickname, data)
