@@ -1,6 +1,7 @@
 from bs4 import BeautifulSoup
 from requests import get
-import random, getopt
+from random import randint
+from getopt import getopt, GetoptError
 
 def command_why(self, arguments):
     target, nickname, message = arguments
@@ -35,8 +36,8 @@ def command_digiclock(self, arguments):
     timezoneArg = None
 
     try:
-        opts, args = getopt.getopt(message, "t:", ["timezone="])
-    except getopt.GetoptError as e:
+        opts, args = getopt(message, "t:", ["timezone="])
+    except GetoptError as e:
         print(e)
 
     for opt, arg in opts:
@@ -68,8 +69,8 @@ def command_dice(self, arguments):
     diceSides = 6
 
     try:
-        opts, args = getopt.getopt(message, "c:s:", ["count=", "sides="])
-    except getopt.GetoptError as e:
+        opts, args = getopt(message, "c:s:", ["count=", "sides="])
+    except GetoptError as e:
         print(e)
 
     for opt, arg in opts:
@@ -90,7 +91,7 @@ def command_dice(self, arguments):
         return
 
     for _ in range(diceCount):
-        diceRoll = random.randint(1, diceSides)
+        diceRoll = randint(1, diceSides)
         diceResults.append(str(diceRoll))
 
     if len(diceResults) == 1:

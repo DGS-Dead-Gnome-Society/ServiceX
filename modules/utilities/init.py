@@ -1,5 +1,5 @@
-import platform
-import getopt
+from platform import system, node, release, version, machine
+from getopt import getopt, GetoptError
 
 def variable_nick(self):
     return self.nickname
@@ -52,8 +52,8 @@ def command_date(self, arguments):
     timezoneArg = None
 
     try:
-        opts, args = getopt.getopt(message, "f:p:t:", ["format=", "preset=", "timezone="])
-    except getopt.GetoptError as e:
+        opts, args = getopt(message, "f:p:t:", ["format=", "preset=", "timezone="])
+    except GetoptError as e:
         print(e)
 
     for opt, arg in opts:
@@ -85,7 +85,7 @@ def command_uname(self, arguments):
 
     try:
         opts = []
-        opts, args = getopt.getopt(message, ":snrvmoa", ["kernel-name", "nodename", "kernel-release", "kernel-version", "machine", "operating-system", "all"])
+        opts, args = getopt(message, ":snrvmoa", ["kernel-name", "nodename", "kernel-release", "kernel-version", "machine", "operating-system", "all"])
         unameString = []
 
         optsSpecified = {
@@ -97,7 +97,7 @@ def command_uname(self, arguments):
             "os": False
         }
 
-    except getopt.GetoptError as e:
+    except GetoptError as e:
         e = str(e)
 
         if e.startswith("option") and e.endswith("not recognized"):
@@ -111,7 +111,7 @@ def command_uname(self, arguments):
     os = "GNU/Linux"
 
     if len(opts) == 0:
-        self.msgSend(target, nickname, "%s %s %s %s %s %s" % (platform.system(), platform.node(), platform.release(), platform.version(), platform.machine(), os))
+        self.msgSend(target, nickname, "%s %s %s %s %s %s" % (system(), node(), release(), version(), machine(), os))
 
     else:
         for opt, arg in opts:
@@ -134,19 +134,19 @@ def command_uname(self, arguments):
                 optsSpecified["os"] = True
 
         if optsSpecified['system'] is True:
-            unameString.append(platform.system())
+            unameString.append(system())
 
         if optsSpecified['node'] is True:
-            unameString.append(platform.node())
+            unameString.append(node())
 
         if optsSpecified['release'] is True:
-            unameString.append(platform.release())
+            unameString.append(release())
 
         if optsSpecified['version'] is True:
-            unameString.append(platform.version())
+            unameString.append(version())
 
         if optsSpecified['machine'] is True:
-            unameString.append(platform.machine())
+            unameString.append(machine())
 
         if optsSpecified['os'] is True:
             unameString.append(os)
@@ -159,10 +159,10 @@ def command_echo(self, arguments):
     newline = False
 
     try:
-        opts, args = getopt.getopt(message, ":en")
+        opts, args = getopt(message, ":en")
         lastOpt = opts[:1]
 
-    except getopt.GetoptError as e:
+    except GetoptError as e:
         e = str(e)
 
         if e.startswith("option") and e.endswith("not recognized"):
