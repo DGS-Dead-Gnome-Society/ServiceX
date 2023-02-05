@@ -42,7 +42,7 @@ def command_commands(self, arguments):
     if moduleCount > 1:
         secondString = "%s from %s modules" % (firstString, moduleCount)
 
-    self.msgSend(target, nickname, "There %s available, these commands are:\\n%s" % (secondString, self.dataGrid(self.chunkifyList(commands, 2))))
+    self.msgSend(target, nickname, "There %s available, these commands are:\\n%s" % (secondString, self.dataGrid(self.chunkifyList(commands, 2))), escapes=True)
 
 def command_date(self, arguments):
     target, nickname, message = arguments
