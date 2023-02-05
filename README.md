@@ -15,6 +15,7 @@ When features are proposed, they'll be added to this list. When features are imp
 * [X] Date and time commands
 * [X] Database-driven module engine
 * [X] Can construct dataframes to be sent over IRC
+* [X] Support for both SSL and Non-SSL connections
 * [ ] SASL authentication (Ability to authenticate via SASL upon connect)
 * [ ] Virtual IRC operator (Ability to authenticate as an oper)
 * [ ] Automatically join all channels in the `#DGS-* namespace` (Configurable)
