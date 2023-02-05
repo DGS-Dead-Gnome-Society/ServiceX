@@ -9,6 +9,27 @@ def command_why(self, arguments):
     elem = soup.find('a')
     self.msgSend(target, nickname, elem.text.encode('ascii', 'ignore').decode())
 
+def command_digits(self, arguments):
+    target, nickname, message = arguments
+
+    numRepr = {
+        '0': ('██████', '██  ██', '██  ██', '██  ██', '██████'),
+        '1': ('    ██', '    ██', '    ██', '    ██', '    ██'),
+        '2': ('██████', '    ██', '██████', '██    ', '██████'),
+        '3': ('██████', '    ██', '██████', '    ██', '██████'),
+        '4': ('██  ██', '██  ██', '██████', '    ██', '    ██'),
+        '5': ('██████', '██    ', '██████', '    ██', '██████'),
+        '6': ('██████', '██    ', '██████', '██  ██', '██████'),
+        '7': ('██████', '    ██', '    ██', '    ██', '    ██'),
+        '8': ('██████', '██  ██', '██████', '██  ██', '██████'),
+        '9': ('██████', '██  ██', '██████', '    ██', '██████'),
+    }
+
+    digits = [numRepr[digit] for digit in "".join(message)]
+    for i in range(5):
+        data = " ".join(segment[i] for segment in digits)
+        self.msgSend(target, nickname, data)
+
 def command_digiclock(self, arguments):
     target, nickname, message = arguments
     timezoneArg = None
