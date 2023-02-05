@@ -80,11 +80,6 @@ def command_date(self, arguments):
      #   else:
      #       self.msgSend(target, nickname, "Invalid option specified: %s" % opt)
 
-def command_time(self, arguments):
-    target, nickname, message = arguments
-
-    self.msgSend(target, nickname, self.timestamp(preset="time"))
-
 def command_uname(self, arguments):
     target, nickname, message = arguments
 
