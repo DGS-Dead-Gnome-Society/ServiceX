@@ -1,6 +1,8 @@
 # ServiceX
 ServiceX is a database-driven (sqlite3) pseudo-services bot wrote using the python3-twisted library for the DGS (Dead Gnome Society) IRC network. We had a Limnoria bot called X which was hosting channel statistics and a polling system however there were a few hardcoded things I didn't like about Limnoria so I decided to re-invent the wheel.
 
+**Please use this bot responsibly, ask channel owners for permission to join this bot to their channels.**
+
 ## How to use
 Read the [wiki](https://github.com/DGS-Dead-Gnome-Society/ServiceX/wiki), if you don't read the wiki then I won't help you.
 
