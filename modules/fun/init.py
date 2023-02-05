@@ -2,13 +2,15 @@ from bs4 import BeautifulSoup
 from requests import get
 import random
 
-def command_why(self, target, nickname, message):
+def command_why(self, arguments):
+    target, nickname, message = arguments
     req = get('http://developerexcuses.com/')
     soup = BeautifulSoup(req.text, features="html.parser")
     elem = soup.find('a')
     self.msgSend(target, nickname, elem.text.encode('ascii', 'ignore').decode())
 
-def command_digiclock(self, target, nickname, message):
+def command_digiclock(self, arguments):
+    target, nickname, message = arguments
     numRepr = {
         '0': ('██████', '██  ██', '██  ██', '██  ██', '██████'),
         '1': ('    ██', '    ██', '    ██', '    ██', '    ██'),
@@ -28,7 +30,8 @@ def command_digiclock(self, target, nickname, message):
         data = " ".join(segment[i] for segment in digits)
         self.msgSend(target, nickname, data)
 
-def command_dice(self, target, nickname, message):
+def command_dice(self, arguments):
+    target, nickname, message = arguments
     try:
         diceCount = int(message[0])
     except IndexError:
